@@ -11,7 +11,7 @@ Windows 10/11용 개인 도우미입니다. C# .NET 8과 WPF로 만들었으며,
 
 웹 화면을 표시하려면 [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/)이 필요합니다. 빌드 시 `Microsoft.Web.WebView2` 패키지는 NuGet에서 복원됩니다.
 
-CPU 온도는 [LibreHardwareMonitorLib](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor)로 읽습니다. 빌드 시 NuGet에서 함께 복원됩니다. 센서가 제공되지 않는 PC에서는 온도 대신 안내 문구가 나오며, 일부 센서는 관리자 권한이 필요합니다. 라이브러리는 [MPL 2.0](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/blob/master/LICENSE) 라이선스를 따릅니다.
+CPU 온도는 [LibreHardwareMonitorLib](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor)로 읽습니다. 빌드 시 NuGet에서 함께 복원됩니다. 일부 센서는 관리자 권한이 필요합니다. 센서가 처음 0을 반환하면 앱이 연결을 자동으로 다시 시도하며, 진단 결과는 `%LOCALAPPDATA%\GeosangIntegratedHub\cpu-sensor.log`에 기록됩니다. 라이브러리는 [MPL 2.0](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/blob/master/LICENSE) 라이선스를 따릅니다.
 
 ## 배포용 파일 만들기
 
