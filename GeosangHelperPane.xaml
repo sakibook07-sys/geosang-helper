@@ -1,0 +1,153 @@
+<UserControl x:Class="GeosangHelper.GeosangHelperPane" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ Foreground="{DynamicResource AppTextBrush}" FontSize="{DynamicResource BaseFontSize}" MinWidth="280" MinHeight="300">
+ <UserControl.Background><ImageBrush ImageSource="Assets/hanbok-bg.png" Stretch="UniformToFill" AlignmentX="Center" AlignmentY="Center"/></UserControl.Background>
+ <UserControl.Resources>
+  <DataTemplate x:Key="TabHeaderTemplate"><TextBlock Text="{Binding}" Foreground="{DynamicResource AppTextBrush}" FontWeight="SemiBold" Margin="2,1"/></DataTemplate>
+  <DataTemplate x:Key="TimerDisplayTemplate">
+   <Border Background="{DynamicResource CardBrush}" BorderBrush="#B78672" BorderThickness="1" Padding="9" Margin="0,0,0,8" CornerRadius="6"><StackPanel>
+    <TextBlock Text="{Binding Name}" FontWeight="Bold" TextWrapping="Wrap"/>
+    <TextBlock Text="{Binding Remaining}" Foreground="{DynamicResource AppTextBrush}" FontWeight="Bold" FontSize="{DynamicResource TimerFontSize}" Margin="0,6"/>
+    <TextBlock Text="{Binding EndTimeText}" Foreground="{DynamicResource MutedTextBrush}" FontSize="{DynamicResource SmallFontSize}" TextWrapping="Wrap" Margin="0,0,0,5"/>
+    <StackPanel Orientation="Horizontal"><Button Content="시작" Click="StartTimer"/><Button Content="완료" Click="CompleteTimer"/></StackPanel>
+   </StackPanel></Border>
+  </DataTemplate>
+  <DataTemplate x:Key="TimerEditTemplate">
+   <Border Background="{DynamicResource CardBrush}" BorderBrush="#B78672" BorderThickness="1" Padding="9" Margin="0,0,0,8" CornerRadius="6"><StackPanel>
+    <TextBlock Text="{Binding Name}" FontWeight="Bold" TextWrapping="Wrap"/>
+    <TextBlock Text="{Binding Remaining}" Foreground="{DynamicResource AppTextBrush}" FontWeight="Bold" Margin="0,5"/>
+    <TextBlock Text="{Binding EndTimeText}" Foreground="{DynamicResource MutedTextBrush}" FontSize="{DynamicResource SmallFontSize}" TextWrapping="Wrap" Margin="0,0,0,5"/>
+    <StackPanel Orientation="Horizontal"><Button Content="수정" Click="EditTimer"/><Button Content="시작" Click="StartTimer"/><Button Content="완료" Click="CompleteTimer"/><Button Content="삭제" Click="DeleteTimer"/></StackPanel>
+   </StackPanel></Border>
+  </DataTemplate>
+  <DataTemplate x:Key="CheckDisplayTemplate">
+   <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Click="CheckChanged" Foreground="{DynamicResource AppTextBrush}" FontWeight="SemiBold" Margin="3,5">
+    <TextBlock Text="{Binding Name}" TextWrapping="Wrap"/>
+   </CheckBox>
+  </DataTemplate>
+  <DataTemplate x:Key="BattleTemplate">
+   <Border Background="{DynamicResource CardBrush}" BorderBrush="#B78672" BorderThickness="1" Padding="8" Margin="0,0,0,6" CornerRadius="5">
+    <DockPanel><TextBlock DockPanel.Dock="Right" Text="{Binding TimeText}" Foreground="{DynamicResource MutedTextBrush}" FontSize="{DynamicResource SmallFontSize}"/><StackPanel><TextBlock Text="{Binding Name}" FontWeight="Bold"/><TextBlock Text="{Binding DurationText}" FontSize="{DynamicResource TimerFontSize}" FontWeight="Bold"/></StackPanel></DockPanel>
+   </Border>
+  </DataTemplate>
+  <DataTemplate x:Key="MarketTemplate">
+   <Border Background="{DynamicResource CardBrush}" BorderBrush="#B78672" BorderThickness="1" Padding="8" Margin="0,0,0,6" CornerRadius="5">
+    <StackPanel><TextBlock Text="{Binding ItemName}" FontWeight="Bold"/><TextBlock Text="{Binding PriceText}" FontSize="{DynamicResource TimerFontSize}" FontWeight="Bold"/><TextBlock Foreground="{DynamicResource MutedTextBrush}"><Run Text="{Binding QuantityText}"/><Run Text=" · 판매자 "/><Run Text="{Binding Seller}"/><Run Text=" · "/><Run Text="{Binding TimeText}"/></TextBlock></StackPanel>
+   </Border>
+  </DataTemplate>
+ </UserControl.Resources>
+ <Border Background="Transparent" BorderBrush="#795044" BorderThickness="1" Padding="10">
+  <Grid>
+   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+   <DockPanel Background="#E64B3029" MouseLeftButtonDown="DragHeader" Margin="0,0,0,8" Visibility="Collapsed">
+    <Button DockPanel.Dock="Right" Content="종료" Click="CloseApp"/>
+    <Button DockPanel.Dock="Right" Content="최소화" Click="MinimizeApp"/>
+    <Image DockPanel.Dock="Left" Source="Assets/app-icon.ico" Width="25" Height="25" Margin="6,3,1,3" Stretch="Uniform"/>
+    <TextBlock Text="거상 도우미  ·  여기를 끌어 이동" Foreground="#FFF9F4" VerticalAlignment="Center" Margin="8" FontWeight="Bold"/>
+   </DockPanel>
+
+   <TabControl x:Name="MainTabs" Grid.Row="1" SelectionChanged="TabChanged" Background="{DynamicResource PanelBrush}" Foreground="{DynamicResource AppTextBrush}" BorderBrush="#9B6655">
+    <TabItem Header="한눈에 보기" HeaderTemplate="{StaticResource TabHeaderTemplate}">
+     <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="10">
+      <TextBlock Text="주막 임무" FontSize="{DynamicResource HeadingFontSize}" Margin="0,0,0,8"/>
+      <TextBlock x:Name="NoTimersText" Text="주막 설정 탭에서 타이머를 추가해주세요." Foreground="{DynamicResource MutedTextBrush}" Margin="0,0,0,8"/>
+      <ItemsControl x:Name="OverviewTimerList" ItemTemplate="{StaticResource TimerDisplayTemplate}"/>
+      <TextBlock Text="체크리스트" FontSize="{DynamicResource HeadingFontSize}" Margin="0,12,0,8"/>
+      <TextBlock x:Name="NoChecksText" Text="체크리스트 설정 탭에서 항목을 추가해주세요." Foreground="{DynamicResource MutedTextBrush}" Margin="0,0,0,8"/>
+      <ItemsControl x:Name="OverviewCheckList" ItemTemplate="{StaticResource CheckDisplayTemplate}"/>
+      <TextBlock Text="전투 분석" FontSize="{DynamicResource HeadingFontSize}" Margin="0,14,0,5" Visibility="Collapsed"/>
+      <TextBlock x:Name="OverviewBattleText" Text="게임 자동 인식을 켜면 전투시간이 표시됩니다." TextWrapping="Wrap" FontWeight="Bold" Visibility="Collapsed"/>
+      <TextBlock Text="최근 시세" FontSize="{DynamicResource HeadingFontSize}" Margin="0,14,0,5" Visibility="Collapsed"/>
+      <TextBlock x:Name="OverviewMarketText" Text="육의전에서 검색하면 최저가가 표시됩니다." TextWrapping="Wrap" FontWeight="Bold" Visibility="Collapsed"/>
+     </StackPanel></ScrollViewer>
+    </TabItem>
+
+    <TabItem Header="주막 설정" HeaderTemplate="{StaticResource TabHeaderTemplate}">
+     <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="10">
+      <DockPanel><Button DockPanel.Dock="Right" Content="+ 타이머" Click="AddTimer"/><TextBlock Text="주막 임무 설정" FontSize="{DynamicResource HeadingFontSize}" VerticalAlignment="Center"/></DockPanel>
+      <TextBlock Text="종료 시각을 저장하므로 PC를 꺼도 시간이 흐릅니다." FontSize="{DynamicResource SmallFontSize}" Foreground="{DynamicResource MutedTextBrush}" Margin="0,5,0,8"/>
+      <ItemsControl x:Name="TimerSettingsList" ItemTemplate="{StaticResource TimerEditTemplate}"/>
+     </StackPanel></ScrollViewer>
+    </TabItem>
+
+    <TabItem Header="체크리스트 설정" HeaderTemplate="{StaticResource TabHeaderTemplate}">
+     <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="10">
+      <TextBlock Text="체크리스트 설정" FontSize="{DynamicResource HeadingFontSize}" Margin="0,0,0,8"/>
+      <DockPanel Margin="0,0,0,8"><Button DockPanel.Dock="Right" Content="추가" Click="AddCheck"/><TextBox x:Name="CheckName" MaxLength="80" ToolTip="할 일 이름" KeyDown="CheckKeyDown"/></DockPanel>
+      <ItemsControl x:Name="CheckSettingsList"><ItemsControl.ItemTemplate><DataTemplate>
+       <DockPanel Margin="0,3"><Button DockPanel.Dock="Right" Content="삭제" Click="DeleteCheck"/><CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Click="CheckChanged" VerticalAlignment="Center" Foreground="{DynamicResource AppTextBrush}"><TextBlock Text="{Binding Name}" TextWrapping="Wrap"/></CheckBox></DockPanel>
+      </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+     </StackPanel></ScrollViewer>
+    </TabItem>
+
+    <TabItem Header="전투" HeaderTemplate="{StaticResource TabHeaderTemplate}" Visibility="Collapsed">
+     <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="10">
+      <TextBlock Text="전투 분석" FontSize="{DynamicResource HeadingFontSize}"/>
+      <TextBlock x:Name="BattleLiveText" Text="전투 대기 중" FontWeight="Bold" FontSize="{DynamicResource TimerFontSize}" Margin="0,7"/>
+      <TextBlock Text="사냥터·몬스터 표시 이름" FontWeight="Bold" Margin="0,7,0,3"/>
+      <DockPanel><Button DockPanel.Dock="Right" Content="저장" Click="SaveBattleLabel"/><TextBox x:Name="BattleLabelBox" MaxLength="80"/></DockPanel>
+      <DockPanel Margin="0,12,0,7"><Button DockPanel.Dock="Right" Content="기록 삭제" Click="ClearBattles"/><TextBlock Text="최근 전투 기록" FontWeight="Bold"/></DockPanel>
+      <ItemsControl x:Name="BattleList" ItemTemplate="{StaticResource BattleTemplate}"/>
+     </StackPanel></ScrollViewer>
+    </TabItem>
+
+    <TabItem Header="시세" HeaderTemplate="{StaticResource TabHeaderTemplate}" Visibility="Collapsed">
+     <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="10">
+      <TextBlock Text="육의전 시세" FontSize="{DynamicResource HeadingFontSize}"/>
+      <TextBlock Text="게임에서 검색하면 판매자·수량·개당 가격을 자동으로 가져옵니다." Foreground="{DynamicResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,5,0,8"/>
+      <DockPanel Margin="0,0,0,7"><Button DockPanel.Dock="Right" Content="목록 삭제" Click="ClearMarket"/><TextBlock x:Name="MarketSummaryText" Text="검색 대기 중" FontWeight="Bold" VerticalAlignment="Center"/></DockPanel>
+      <ItemsControl x:Name="MarketList" ItemTemplate="{StaticResource MarketTemplate}"/>
+     </StackPanel></ScrollViewer>
+    </TabItem>
+
+    <TabItem Header="기록" HeaderTemplate="{StaticResource TabHeaderTemplate}" Visibility="Collapsed">
+     <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="10">
+      <TextBlock Text="기록 관리" FontSize="{DynamicResource HeadingFontSize}"/>
+      <TextBlock Text="전투 기록과 마지막 시세 결과는 로컬 설정 파일에 저장됩니다." Foreground="{DynamicResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,5,0,12"/>
+      <TextBlock x:Name="RecordSummaryText" FontWeight="Bold" TextWrapping="Wrap"/>
+      <WrapPanel Margin="0,10,0,0"><Button Content="전투 기록 삭제" Click="ClearBattles"/><Button Content="시세 기록 삭제" Click="ClearMarket"/></WrapPanel>
+     </StackPanel></ScrollViewer>
+    </TabItem>
+
+    <TabItem Header="환경설정" HeaderTemplate="{StaticResource TabHeaderTemplate}">
+     <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="12">
+      <TextBlock Text="환경설정" FontSize="{DynamicResource HeadingFontSize}" Margin="0,0,0,10"/>
+      <CheckBox x:Name="StartupBox" Content="Windows 로그인 시 자동 실행" Foreground="{DynamicResource AppTextBrush}" Margin="3,6" Click="StartupChanged"/>
+      <CheckBox x:Name="TopBox" Content="항상 위에 표시" Foreground="{DynamicResource AppTextBrush}" Margin="3,6" Click="TopChanged"/>
+      <CheckBox x:Name="SizeLockBox" Content="현재 창 크기 고정" Foreground="{DynamicResource AppTextBrush}" Margin="3,6" Click="SizeLockChanged" Visibility="Collapsed"/>
+      <CheckBox x:Name="GameMonitorBox" Content="거상 전투·시세 자동 인식 (Npcap)" Foreground="{DynamicResource AppTextBrush}" Margin="3,6" Click="GameMonitorChanged" Visibility="Collapsed"/>
+      <TextBlock x:Name="GameMonitorStatus" Text="자동 인식 제거됨" Foreground="{DynamicResource MutedTextBrush}" FontSize="{DynamicResource SmallFontSize}" TextWrapping="Wrap" Margin="3,0,3,8" Visibility="Collapsed"/>
+      <TextBlock Text="배경 이미지" FontWeight="Bold" Margin="3,14,3,4"/>
+      <WrapPanel><Button Content="이미지 선택" Click="ChooseBackground"/><Button Content="기본 이미지" Click="ResetBackground"/></WrapPanel>
+      <TextBlock x:Name="BackgroundPathText" Foreground="{DynamicResource MutedTextBrush}" FontSize="{DynamicResource SmallFontSize}" TextWrapping="Wrap" Margin="3,2,3,8"/>
+      <DockPanel Margin="3,7"><TextBlock Text="글자 크기" FontWeight="Bold"/><TextBlock x:Name="FontSizeValue" DockPanel.Dock="Right" FontWeight="Bold"/></DockPanel>
+      <Slider x:Name="FontSizeSlider" Minimum="9" Maximum="32" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="FontSizeChanged"/>
+      <DockPanel Margin="3,12,3,4"><TextBlock Text="글자 색상" FontWeight="Bold"/><Border x:Name="FontColorSample" DockPanel.Dock="Right" Width="34" Height="20" BorderBrush="#6B5148" BorderThickness="1" CornerRadius="3"/></DockPanel>
+      <Button Content="색상 선택" Click="ChooseFontColor" HorizontalAlignment="Left"/>
+      <DockPanel Margin="3,12,3,4"><TextBlock Text="패널 투명도" FontWeight="Bold"/><TextBlock x:Name="PanelOpacityValue" DockPanel.Dock="Right" FontWeight="Bold"/></DockPanel>
+      <Slider x:Name="PanelOpacitySlider" Minimum="0" Maximum="0.9" TickFrequency="0.05" IsSnapToTickEnabled="True" ValueChanged="PanelOpacityChanged"/>
+      <TextBlock Text="0%에 가까울수록 배경이 선명하게 보입니다." Foreground="{DynamicResource MutedTextBrush}" FontSize="{DynamicResource SmallFontSize}" Margin="3,2,3,8"/>
+      <Separator Margin="0,10"/>
+      <DockPanel Margin="3,0,3,7">
+       <Button DockPanel.Dock="Right" Content="+ 이미지 버튼" Click="AddImageShortcut"/>
+       <TextBlock Text="계산기 아래 이미지 버튼" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"/>
+      </DockPanel>
+      <TextBlock Text="이미지를 등록하면 계산기 아래 버튼이 생기고, 누르면 별도 창에서 열립니다." Foreground="{DynamicResource MutedTextBrush}" FontSize="{DynamicResource SmallFontSize}" TextWrapping="Wrap" Margin="3,0,3,8"/>
+      <ItemsControl x:Name="ImageShortcutSettingsList">
+       <ItemsControl.ItemTemplate><DataTemplate>
+        <Border Background="{DynamicResource CardBrush}" BorderBrush="#B78672" BorderThickness="1" CornerRadius="5" Padding="6" Margin="0,0,0,6">
+         <StackPanel>
+          <TextBlock Text="{Binding Name}" FontWeight="Bold" TextWrapping="Wrap"/>
+          <TextBlock Text="{Binding ImagePath}" ToolTip="{Binding ImagePath}" TextTrimming="CharacterEllipsis" FontSize="{DynamicResource SmallFontSize}" Foreground="{DynamicResource MutedTextBrush}" Margin="0,3,0,5"/>
+          <StackPanel Orientation="Horizontal"><Button Content="수정" Click="EditImageShortcut"/><Button Content="삭제" Click="DeleteImageShortcut"/></StackPanel>
+         </StackPanel>
+        </Border>
+       </DataTemplate></ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <TextBlock Text="크기 고정을 풀면 창의 모서리와 가장자리를 끌어 원하는 크기로 조절할 수 있습니다. 크기와 위치는 자동 저장됩니다." Foreground="{DynamicResource MutedTextBrush}" TextWrapping="Wrap" Margin="3,10"/>
+     </StackPanel></ScrollViewer>
+    </TabItem>
+   </TabControl>
+   <Border Grid.Row="2" Background="{DynamicResource CardBrush}" CornerRadius="3" Margin="0,7,18,0" Padding="4,2"><TextBlock x:Name="Status" Text="변경 내용은 자동 저장됩니다." Foreground="{DynamicResource AppTextBrush}" FontWeight="SemiBold" FontSize="{DynamicResource SmallFontSize}" TextWrapping="Wrap"/></Border>
+  </Grid>
+ </Border>
+</UserControl>
