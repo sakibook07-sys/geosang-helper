@@ -488,7 +488,7 @@ public partial class MainWindow : Window
         HelperPane.RenderTransform = new ScaleTransform(_settings.HelperZoom, _settings.HelperZoom);
     }
 
-    private void ApplyEmptyZoom() => Calculator.LayoutTransform = new ScaleTransform(_settings.EmptyZoom, _settings.EmptyZoom);
+    private void ApplyEmptyZoom() => RightContent.LayoutTransform = new ScaleTransform(_settings.EmptyZoom, _settings.EmptyZoom);
 
     private void HelperViewport_SizeChanged(object sender, SizeChangedEventArgs e) => ApplyHelperZoom();
     private void BrowserZoomOut_Click(object sender, RoutedEventArgs e) => SetBrowserZoom(_settings.BrowserZoom - 0.1);
@@ -521,6 +521,7 @@ public partial class MainWindow : Window
     private void MainWindow_Closing(object? sender, CancelEventArgs e)
     {
         _isClosing = true;
+        CpuTemperature.Dispose();
         HelperPane.Dispose();
         _settings.WasMaximized = WindowState == WindowState.Maximized;
         if (WindowState == WindowState.Normal)

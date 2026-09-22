@@ -13,5 +13,6 @@
     <Resource Include="Assets\hanbok-bg.png" />
     <Resource Include="Assets\app-icon.ico" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4191.47" />
+    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.6" />
   </ItemGroup>
 </Project>

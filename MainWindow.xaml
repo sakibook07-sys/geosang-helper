@@ -168,11 +168,12 @@
                             <Button DockPanel.Dock="Right" Content="＋" Click="EmptyZoomIn_Click"/>
                             <TextBlock x:Name="EmptyZoomText" DockPanel.Dock="Right" Width="54" TextAlignment="Center" VerticalAlignment="Center" Foreground="White" FontWeight="Bold"/>
                             <Button DockPanel.Dock="Right" Content="－" Click="EmptyZoomOut_Click"/>
-                            <TextBlock Text="계산기" Foreground="White" FontSize="17" FontWeight="Bold" Margin="12,9"/>
+                            <TextBlock Text="CPU 온도 · 계산기" Foreground="White" FontSize="17" FontWeight="Bold" Margin="12,9"/>
                         </DockPanel>
                     </Border>
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <StackPanel Margin="5">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="RightContent" Margin="5">
+                            <local:CpuTemperaturePane x:Name="CpuTemperature" HorizontalAlignment="Stretch" Margin="0,0,0,10"/>
                             <local:CalculatorPane x:Name="Calculator" HorizontalAlignment="Stretch"/>
                             <TextBlock Text="이미지 바로가기" Foreground="#5C4338" FontWeight="Bold" Margin="4,15,4,6"/>
                             <ItemsControl x:Name="ImageShortcutButtons">

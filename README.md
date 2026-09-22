@@ -1,6 +1,6 @@
 # 거상 통합 도우미
 
-Windows 10/11용 개인 도우미입니다. C# .NET 8과 WPF로 만들었으며, 일반 인터넷 탭, 거타 육의전 원본 페이지, 주막 임무 타이머, 체크리스트, 계산기, 사용자 이미지 버튼을 한 창에서 사용합니다.
+Windows 10/11용 개인 도우미입니다. C# .NET 8과 WPF로 만들었으며, 일반 인터넷 탭, 거타 육의전 원본 페이지, 주막 임무 타이머, 체크리스트, CPU 온도, 계산기, 사용자 이미지 버튼을 한 창에서 사용합니다.
 
 ## 다른 PC에서 수정하기
 
@@ -10,6 +10,8 @@ Windows 10/11용 개인 도우미입니다. C# .NET 8과 WPF로 만들었으며,
 4. 코드를 수정한 뒤 `dotnet run --project GeosangHub.csproj`로 실행합니다.
 
 웹 화면을 표시하려면 [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/)이 필요합니다. 빌드 시 `Microsoft.Web.WebView2` 패키지는 NuGet에서 복원됩니다.
+
+CPU 온도는 [LibreHardwareMonitorLib](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor)로 읽습니다. 빌드 시 NuGet에서 함께 복원됩니다. 센서가 제공되지 않는 PC에서는 온도 대신 안내 문구가 나오며, 일부 센서는 관리자 권한이 필요합니다. 라이브러리는 [MPL 2.0](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/blob/master/LICENSE) 라이선스를 따릅니다.
 
 ## 배포용 파일 만들기
 
@@ -34,6 +36,7 @@ dotnet publish .\GeosangHub.csproj -c Release -r win-x64 --self-contained true -
 - `MainWindow.xaml` / `.xaml.cs`: 통합 화면과 브라우저 탭
 - `GeosangHelperPane.xaml` / `.xaml.cs`: 주막 타이머, 체크리스트, 환경설정
 - `CalculatorPane.xaml` / `.xaml.cs`: 계산기
+- `CpuTemperaturePane.xaml` / `.xaml.cs`: CPU 온도 센서 표시
 - `ImageShortcutDialog.cs` / `ImagePreviewWindow.cs`: 이미지 버튼 등록과 보기
 - `HubSettings.cs`, `Models.cs`, `Storage.cs`: 로컬 설정 저장
 
