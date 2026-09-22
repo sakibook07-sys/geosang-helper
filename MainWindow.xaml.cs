@@ -488,7 +488,11 @@ public partial class MainWindow : Window
         HelperPane.RenderTransform = new ScaleTransform(_settings.HelperZoom, _settings.HelperZoom);
     }
 
-    private void ApplyEmptyZoom() => RightContent.LayoutTransform = new ScaleTransform(_settings.EmptyZoom, _settings.EmptyZoom);
+    private void ApplyEmptyZoom()
+    {
+        RightContent.LayoutTransform = new ScaleTransform(_settings.EmptyZoom, _settings.EmptyZoom);
+        CpuTemperature.LayoutTransform = new ScaleTransform(_settings.EmptyZoom, _settings.EmptyZoom);
+    }
 
     private void HelperViewport_SizeChanged(object sender, SizeChangedEventArgs e) => ApplyHelperZoom();
     private void BrowserZoomOut_Click(object sender, RoutedEventArgs e) => SetBrowserZoom(_settings.BrowserZoom - 0.1);

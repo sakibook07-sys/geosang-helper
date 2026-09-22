@@ -162,18 +162,17 @@
 
             <Border Grid.Column="4" Background="#F8F6F4" BorderBrush="#77655D" BorderThickness="1" CornerRadius="5">
                 <Grid>
-                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                     <Border Background="#302925">
                         <DockPanel>
                             <Button DockPanel.Dock="Right" Content="＋" Click="EmptyZoomIn_Click"/>
                             <TextBlock x:Name="EmptyZoomText" DockPanel.Dock="Right" Width="54" TextAlignment="Center" VerticalAlignment="Center" Foreground="White" FontWeight="Bold"/>
                             <Button DockPanel.Dock="Right" Content="－" Click="EmptyZoomOut_Click"/>
-                            <TextBlock Text="CPU 온도 · 계산기" Foreground="White" FontSize="17" FontWeight="Bold" Margin="12,9"/>
+                            <TextBlock Text="도구" Foreground="White" FontSize="17" FontWeight="Bold" Margin="12,9"/>
                         </DockPanel>
                     </Border>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                         <StackPanel x:Name="RightContent" Margin="5">
-                            <local:CpuTemperaturePane x:Name="CpuTemperature" HorizontalAlignment="Stretch" Margin="0,0,0,10"/>
                             <local:CalculatorPane x:Name="Calculator" HorizontalAlignment="Stretch"/>
                             <TextBlock Text="이미지 바로가기" Foreground="#5C4338" FontWeight="Bold" Margin="4,15,4,6"/>
                             <ItemsControl x:Name="ImageShortcutButtons">
@@ -188,6 +187,7 @@
                             <TextBlock Text="버튼은 왼쪽 환경설정에서 추가할 수 있어요." Foreground="#806B60" FontSize="11" TextWrapping="Wrap" Margin="3,4,3,8"/>
                         </StackPanel>
                     </ScrollViewer>
+                    <local:CpuTemperaturePane x:Name="CpuTemperature" Grid.Row="2" Margin="4,3,4,4"/>
                 </Grid>
             </Border>
         </Grid>

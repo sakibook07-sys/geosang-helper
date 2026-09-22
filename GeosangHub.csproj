@@ -14,5 +14,14 @@
     <Resource Include="Assets\app-icon.ico" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4191.47" />
     <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.6" />
+    <PackageReference Include="System.Threading.AccessControl" Version="10.0.3" GeneratePathProperty="true" />
   </ItemGroup>
+  <Target Name="CopySensorAccessControlForBuild" AfterTargets="Build" Condition="'$(TargetFramework)' == 'net8.0-windows'">
+    <Copy SourceFiles="$(PkgSystem_Threading_AccessControl)\runtimes\win\lib\net8.0\System.Threading.AccessControl.dll"
+          DestinationFolder="$(TargetDir)" />
+  </Target>
+  <Target Name="CopySensorAccessControlForPublish" AfterTargets="Publish" Condition="'$(RuntimeIdentifier)' == 'win-x64'">
+    <Copy SourceFiles="$(PkgSystem_Threading_AccessControl)\runtimes\win\lib\net8.0\System.Threading.AccessControl.dll"
+          DestinationFolder="$(PublishDir)" />
+  </Target>
 </Project>

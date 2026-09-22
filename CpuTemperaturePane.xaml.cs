@@ -86,33 +86,27 @@ public partial class CpuTemperaturePane : UserControl, IDisposable
     private void ShowReadings(string cpuName, CpuReading[] readings)
     {
         if (_disposed) return;
-        CpuNameText.Text = cpuName;
         if (readings.Length == 0)
         {
             TemperatureText.Text = "-- °C";
-            MainSensorText.Text = "";
-            StatusText.Text = "유효한 온도 값이 없습니다. 관리자 권한이 필요하거나 이 PC의 센서가 지원되지 않을 수 있습니다.";
-            SensorList.ItemsSource = null;
+            StatusText.Text = "측정 불가";
+            ToolTip = cpuName + "\n유효한 온도 값이 없습니다. 관리자 권한이 필요하거나 이 PC의 센서가 지원되지 않을 수 있습니다.";
             return;
         }
 
         var primary = readings[0];
         TemperatureText.Text = $"{primary.Value:0.0} °C";
-        MainSensorText.Text = primary.Name;
-        StatusText.Text = $"{DateTime.Now:HH:mm:ss} 갱신 · 2초 간격";
-        SensorList.ItemsSource = readings.Take(6)
-            .Select(r => new SensorRow(r.Name, $"{r.Value:0.0} °C"))
-            .ToArray();
+        StatusText.Text = primary.Name;
+        ToolTip = cpuName + $"\n{DateTime.Now:HH:mm:ss} 갱신\n" +
+            string.Join("\n", readings.Take(8).Select(r => $"{r.Name}: {r.Value:0.0} °C"));
     }
 
     private void ShowError(string message)
     {
         if (_disposed) return;
         TemperatureText.Text = "-- °C";
-        CpuNameText.Text = "센서를 시작하지 못했습니다.";
-        MainSensorText.Text = "";
-        StatusText.Text = message + " · 필요한 경우 앱을 관리자 권한으로 다시 실행해보세요.";
-        SensorList.ItemsSource = null;
+        StatusText.Text = "센서 오류";
+        ToolTip = message + "\n필요한 경우 앱을 관리자 권한으로 다시 실행해보세요.";
     }
 
     public void Dispose()
@@ -122,5 +116,4 @@ public partial class CpuTemperaturePane : UserControl, IDisposable
     }
 
     private sealed record CpuReading(string Name, float Value);
-    private sealed record SensorRow(string Name, string Temperature);
 }
