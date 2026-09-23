@@ -1,10 +1,12 @@
 using System.ComponentModel;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Interop;
 using GeotaMarketViewer;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
@@ -24,6 +26,7 @@ public partial class MainWindow : Window
     private bool _browserReady;
     private bool _marketReady;
     private bool _isClosing;
+    private readonly ExternalWindowDock _externalWindowDock;
 
     private static readonly ServerOption[] Servers =
     {
@@ -36,11 +39,14 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        _externalWindowDock = new ExternalWindowDock(ExternalProgramPanel);
+        _externalWindowDock.Detached += (_, _) => Dispatcher.Invoke(ShowBrowserArea);
         _bookmarks = new ObservableCollection<BookmarkItem>(_settings.Bookmarks ?? new List<BookmarkItem>());
         foreach (var bookmark in _bookmarks) EnsureBookmarkIcon(bookmark);
         BookmarkItems.ItemsSource = _bookmarks;
         BrowserTabItems.ItemsSource = _browserTabs;
         ImageShortcutButtons.ItemsSource = HelperPane.ImageShortcuts;
+        ProgramShortcutButtons.ItemsSource = HelperPane.ProgramShortcuts;
         ApplySettings();
         Loaded += MainWindow_Loaded;
         Closing += MainWindow_Closing;
@@ -273,6 +279,88 @@ public partial class MainWindow : Window
         try { _settings.Save(); } catch { }
     }
     private void BrowserRefresh_Click(object sender, RoutedEventArgs e) { if (CurrentBrowser?.CoreWebView2 != null) CurrentBrowser.Reload(); }
+
+    private void ExternalProgramAttach_Click(object sender, RoutedEventArgs e)
+    {
+        var windows = ExternalWindowDock.GetAvailableWindows(new WindowInteropHelper(this).Handle);
+        if (windows.Count == 0)
+        {
+            MessageBox.Show(this, "연결할 수 있는 다른 프로그램 창이 없습니다. 프로그램을 먼저 실행해주세요.",
+                "프로그램 연결", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var dialog = new ExternalWindowPickerDialog(windows) { Owner = this };
+        if (dialog.ShowDialog() != true || dialog.SelectedWindow == null) return;
+        AttachExternalWindow(dialog.SelectedWindow);
+    }
+
+    private async void LaunchProgramShortcut_Click(object sender, RoutedEventArgs e)
+    {
+        if (((FrameworkElement)sender).DataContext is not GeosangHelper.ProgramShortcutItem item) return;
+        try
+        {
+            if (!File.Exists(item.ExecutablePath))
+                throw new FileNotFoundException("등록한 프로그램 파일을 찾을 수 없습니다.", item.ExecutablePath);
+
+            var before = ExternalWindowDock.GetAvailableWindows(new WindowInteropHelper(this).Handle)
+                .Select(x => x.Handle).ToHashSet();
+            var process = Process.Start(new ProcessStartInfo
+            {
+                FileName = item.ExecutablePath,
+                Arguments = item.Arguments,
+                WorkingDirectory = Path.GetDirectoryName(item.ExecutablePath) ?? Environment.CurrentDirectory,
+                UseShellExecute = true
+            });
+            string expectedProcess = Path.GetFileNameWithoutExtension(item.ExecutablePath);
+            ExternalWindowInfo? target = null;
+            for (int attempt = 0; attempt < 40 && target == null; attempt++)
+            {
+                await Task.Delay(250);
+                var windows = ExternalWindowDock.GetAvailableWindows(new WindowInteropHelper(this).Handle);
+                if (process != null) target = windows.FirstOrDefault(x => x.ProcessId == process.Id);
+                target ??= windows.FirstOrDefault(x => !before.Contains(x.Handle) &&
+                    string.Equals(x.ProcessName, expectedProcess, StringComparison.OrdinalIgnoreCase));
+                target ??= windows.FirstOrDefault(x =>
+                    string.Equals(x.ProcessName, expectedProcess, StringComparison.OrdinalIgnoreCase));
+            }
+            if (target == null)
+                throw new InvalidOperationException("프로그램은 실행했지만 연결할 창을 찾지 못했습니다. 창이 나타난 뒤 '프로그램 연결'을 사용해주세요.");
+            AttachExternalWindow(target);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, "프로그램 실행 실패", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private void AttachExternalWindow(ExternalWindowInfo window)
+    {
+        try
+        {
+            BrowserViewsHost.Visibility = Visibility.Collapsed;
+            ExternalProgramHost.Visibility = Visibility.Visible;
+            ExternalProgramDetachButton.Visibility = Visibility.Visible;
+            ExternalProgramHost.UpdateLayout();
+            _externalWindowDock.Attach(window.Handle);
+        }
+        catch (Exception ex)
+        {
+            ShowBrowserArea();
+            MessageBox.Show(this, ex.Message + "\n\n일반 창 모드로 실행되는 프로그램에서 사용할 수 있습니다.",
+                "프로그램 연결 실패", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private void ExternalProgramDetach_Click(object sender, RoutedEventArgs e) => _externalWindowDock.Detach();
+
+    private void ShowBrowserArea()
+    {
+        if (_isClosing) return;
+        ExternalProgramHost.Visibility = Visibility.Collapsed;
+        BrowserViewsHost.Visibility = Visibility.Visible;
+        ExternalProgramDetachButton.Visibility = Visibility.Collapsed;
+    }
 
     private async void BrowserNewTab_Click(object sender, RoutedEventArgs e)
     {
@@ -525,6 +613,7 @@ public partial class MainWindow : Window
     private void MainWindow_Closing(object? sender, CancelEventArgs e)
     {
         _isClosing = true;
+        _externalWindowDock.Dispose();
         CpuTemperature.Dispose();
         HelperPane.Dispose();
         _settings.WasMaximized = WindowState == WindowState.Maximized;

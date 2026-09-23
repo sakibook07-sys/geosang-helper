@@ -128,6 +128,23 @@
       <TextBlock Text="0%에 가까울수록 배경이 선명하게 보입니다." Foreground="{DynamicResource MutedTextBrush}" FontSize="{DynamicResource SmallFontSize}" Margin="3,2,3,8"/>
       <Separator Margin="0,10"/>
       <DockPanel Margin="3,0,3,7">
+       <Button DockPanel.Dock="Right" Content="+ 프로그램" Click="AddProgramShortcut"/>
+       <TextBlock Text="상단 프로그램 실행 버튼" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"/>
+      </DockPanel>
+      <TextBlock Text="프로그램을 등록하면 상단 북마크 줄에 실행 버튼이 생깁니다. 버튼을 누르면 프로그램이 상단 영역 안에서 실행됩니다." Foreground="{DynamicResource MutedTextBrush}" FontSize="{DynamicResource SmallFontSize}" TextWrapping="Wrap" Margin="3,0,3,8"/>
+      <ItemsControl x:Name="ProgramShortcutSettingsList">
+       <ItemsControl.ItemTemplate><DataTemplate>
+        <Border Background="{DynamicResource CardBrush}" BorderBrush="#B78672" BorderThickness="1" CornerRadius="5" Padding="6" Margin="0,0,0,6">
+         <StackPanel>
+          <TextBlock Text="{Binding Name}" FontWeight="Bold" TextWrapping="Wrap"/>
+          <TextBlock Text="{Binding ExecutablePath}" ToolTip="{Binding ExecutablePath}" TextTrimming="CharacterEllipsis" FontSize="{DynamicResource SmallFontSize}" Foreground="{DynamicResource MutedTextBrush}" Margin="0,3,0,5"/>
+          <StackPanel Orientation="Horizontal"><Button Content="수정" Click="EditProgramShortcut"/><Button Content="삭제" Click="DeleteProgramShortcut"/></StackPanel>
+         </StackPanel>
+        </Border>
+       </DataTemplate></ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <Separator Margin="0,10"/>
+      <DockPanel Margin="3,0,3,7">
        <Button DockPanel.Dock="Right" Content="+ 이미지 버튼" Click="AddImageShortcut"/>
        <TextBlock Text="계산기 아래 이미지 버튼" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"/>
       </DockPanel>

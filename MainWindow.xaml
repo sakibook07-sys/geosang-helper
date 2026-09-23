@@ -2,6 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        xmlns:wfi="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
+        xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
         xmlns:helper="clr-namespace:GeosangHelper"
         xmlns:local="clr-namespace:GeosangHub"
         Title="거상 통합 도우미" Width="1500" Height="950" MinWidth="1050" MinHeight="700"
@@ -21,6 +23,9 @@
                     <Button DockPanel.Dock="Left" Content="▶" Click="BrowserForward_Click" ToolTip="앞으로"/>
                     <Button DockPanel.Dock="Left" Content="⌂" Click="BrowserHome_Click" ToolTip="홈"/>
                     <Button DockPanel.Dock="Left" Content="홈 설정" Click="BrowserHomeSettings_Click" ToolTip="새 탭과 홈 버튼의 주소 설정"/>
+                    <Button DockPanel.Dock="Left" Content="프로그램 연결" Click="ExternalProgramAttach_Click" ToolTip="실행 중인 다른 프로그램을 상단 영역에 넣기"/>
+                    <Button x:Name="ExternalProgramDetachButton" DockPanel.Dock="Left" Content="인터넷으로 돌아가기" Click="ExternalProgramDetach_Click"
+                            ToolTip="연결한 프로그램을 원래 창으로 되돌리기" Visibility="Collapsed"/>
                     <Button DockPanel.Dock="Right" Content="이동" Click="BrowserGo_Click"/>
                     <Button DockPanel.Dock="Right" Content="새로고침" Click="BrowserRefresh_Click"/>
                     <Button DockPanel.Dock="Right" Content="＋" Click="BrowserZoomIn_Click" ToolTip="인터넷 화면 확대"/>
@@ -59,6 +64,14 @@
                 <DockPanel Grid.Row="2" Background="#F3ECE7" LastChildFill="True">
                     <TextBlock DockPanel.Dock="Left" Text="북마크" Margin="10,0,4,0" VerticalAlignment="Center" FontWeight="Bold"/>
                     <Button DockPanel.Dock="Right" Content="현재 페이지 추가 ★" Click="BookmarkAdd_Click" Height="28" Padding="7,1" Margin="2"/>
+                    <ItemsControl x:Name="ProgramShortcutButtons" DockPanel.Dock="Right" Margin="2,1" MaxWidth="420">
+                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel Orientation="Horizontal"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate><DataTemplate>
+                            <Button Click="LaunchProgramShortcut_Click" Content="{Binding Name}" ToolTip="{Binding ExecutablePath}"
+                                    Height="28" MinWidth="58" MaxWidth="120" Padding="6,1" Margin="1"/>
+                        </DataTemplate></ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock DockPanel.Dock="Right" Text="프로그램" Margin="8,0,2,0" VerticalAlignment="Center" FontWeight="Bold"/>
                     <ItemsControl x:Name="BookmarkItems" Margin="2,1" VerticalAlignment="Top">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate><WrapPanel Orientation="Horizontal"/></ItemsPanelTemplate>
@@ -89,6 +102,9 @@
                     </ItemsControl>
                 </DockPanel>
                 <Grid x:Name="BrowserViewsHost" Grid.Row="3" Background="White" ClipToBounds="True"/>
+                <wfi:WindowsFormsHost x:Name="ExternalProgramHost" Grid.Row="3" Visibility="Collapsed">
+                    <wf:Panel x:Name="ExternalProgramPanel" BackColor="#1E1E1E"/>
+                </wfi:WindowsFormsHost>
             </Grid>
         </Border>
 

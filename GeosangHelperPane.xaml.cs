@@ -24,6 +24,7 @@ public partial class GeosangHelperPane : System.Windows.Controls.UserControl, ID
     private bool ready;
     private Window? HostWindow => Window.GetWindow(this);
     public ObservableCollection<ImageShortcutItem> ImageShortcuts => state.ImageShortcuts;
+    public ObservableCollection<ProgramShortcutItem> ProgramShortcuts => state.ProgramShortcuts;
 
     public GeosangHelperPane()
     {
@@ -39,6 +40,7 @@ public partial class GeosangHelperPane : System.Windows.Controls.UserControl, ID
         OverviewTimerList.ItemsSource = TimerSettingsList.ItemsSource = state.Timers;
         OverviewCheckList.ItemsSource = CheckSettingsList.ItemsSource = state.Checklist;
         ImageShortcutSettingsList.ItemsSource = state.ImageShortcuts;
+        ProgramShortcutSettingsList.ItemsSource = state.ProgramShortcuts;
         BattleList.ItemsSource = state.Battles;
         MarketList.ItemsSource = state.MarketListings;
         BattleLabelBox.Text = state.BattleLabel;
@@ -274,6 +276,43 @@ public partial class GeosangHelperPane : System.Windows.Controls.UserControl, ID
             if (copiedPath != null && File.Exists(copiedPath)) File.Delete(copiedPath);
             MessageBox.Show(HostWindow, "이미지를 등록하지 못했습니다.\n" + ex.Message);
         }
+    }
+    private void AddProgramShortcut(object sender, RoutedEventArgs e)
+    {
+        var dialog = new ProgramShortcutDialog { Owner = HostWindow };
+        if (dialog.ShowDialog() != true) return;
+        var item = new ProgramShortcutItem
+        {
+            Name = dialog.ShortcutName,
+            ExecutablePath = dialog.ExecutablePath,
+            Arguments = dialog.Arguments
+        };
+        state.ProgramShortcuts.Add(item);
+        if (!Save()) state.ProgramShortcuts.Remove(item);
+    }
+    private void EditProgramShortcut(object sender, RoutedEventArgs e)
+    {
+        if (((FrameworkElement)sender).DataContext is not ProgramShortcutItem item) return;
+        var dialog = new ProgramShortcutDialog(item.Name, item.ExecutablePath, item.Arguments) { Owner = HostWindow };
+        if (dialog.ShowDialog() != true) return;
+        int index = state.ProgramShortcuts.IndexOf(item);
+        if (index < 0) return;
+        var replacement = new ProgramShortcutItem
+        {
+            Name = dialog.ShortcutName,
+            ExecutablePath = dialog.ExecutablePath,
+            Arguments = dialog.Arguments
+        };
+        state.ProgramShortcuts[index] = replacement;
+        if (!Save()) state.ProgramShortcuts[index] = item;
+    }
+    private void DeleteProgramShortcut(object sender, RoutedEventArgs e)
+    {
+        if (((FrameworkElement)sender).DataContext is not ProgramShortcutItem item) return;
+        int index = state.ProgramShortcuts.IndexOf(item);
+        if (index < 0) return;
+        state.ProgramShortcuts.RemoveAt(index);
+        if (!Save()) state.ProgramShortcuts.Insert(index, item);
     }
     private void EditImageShortcut(object sender, RoutedEventArgs e)
     {

@@ -34,8 +34,15 @@ public static class Storage
             state.MarketListings ??= new();
             migrated = true;
         }
+        if (state.Version == 3)
+        {
+            state.Version = 4;
+            state.ProgramShortcuts ??= new();
+            migrated = true;
+        }
         state.ImageShortcuts ??= new();
-        if (state.Version != 3 || !double.IsFinite(state.Left) || !double.IsFinite(state.Top)
+        state.ProgramShortcuts ??= new();
+        if (state.Version != 4 || !double.IsFinite(state.Left) || !double.IsFinite(state.Top)
             || !double.IsFinite(state.Width) || !double.IsFinite(state.Height) || state.Width < 1 || state.Height < 1 || state.SelectedTab < 0 || state.SelectedTab > 6
             || !double.IsFinite(state.FontSize) || state.FontSize < 9 || state.FontSize > 32
             || !double.IsFinite(state.PanelOpacity) || state.PanelOpacity < 0 || state.PanelOpacity > 0.9
@@ -45,7 +52,8 @@ public static class Storage
             || state.Battles == null || state.MarketListings == null || string.IsNullOrWhiteSpace(state.BattleLabel)
             || state.Battles.Any(b => b == null || b.StartedAtUnixMs <= 0 || b.EndedAtUnixMs < b.StartedAtUnixMs)
             || state.MarketListings.Any(m => m == null || m.ListingId <= 0 || m.ItemId <= 0 || m.Quantity <= 0 || m.UnitPrice <= 0)
-            || state.ImageShortcuts.Any(i => i == null || string.IsNullOrWhiteSpace(i.Name) || string.IsNullOrWhiteSpace(i.ImagePath)))
+            || state.ImageShortcuts.Any(i => i == null || string.IsNullOrWhiteSpace(i.Name) || string.IsNullOrWhiteSpace(i.ImagePath))
+            || state.ProgramShortcuts.Any(p => p == null || string.IsNullOrWhiteSpace(p.Name) || string.IsNullOrWhiteSpace(p.ExecutablePath)))
             throw new InvalidDataException("설정 파일 형식이 올바르지 않습니다.");
         if (migrated) Save(state);
         return state;

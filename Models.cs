@@ -92,9 +92,15 @@ public class ImageShortcutItem
     public string Name { get; set; } = "";
     public string ImagePath { get; set; } = "";
 }
+public class ProgramShortcutItem
+{
+    public string Name { get; set; } = "";
+    public string ExecutablePath { get; set; } = "";
+    public string Arguments { get; set; } = "";
+}
 public class AppState
 {
-    public int Version { get; set; } = 3;
+    public int Version { get; set; } = 4;
     public double Left { get; set; } = 80;
     public double Top { get; set; } = 80;
     public double Width { get; set; } = 420;
@@ -113,4 +119,5 @@ public class AppState
     public ObservableCollection<BattleRecord> Battles { get; set; } = new();
     public ObservableCollection<MarketListing> MarketListings { get; set; } = new();
     public ObservableCollection<ImageShortcutItem> ImageShortcuts { get; set; } = new();
+    public ObservableCollection<ProgramShortcutItem> ProgramShortcuts { get; set; } = new();
 }
