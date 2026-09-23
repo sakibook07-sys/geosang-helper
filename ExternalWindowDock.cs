@@ -12,6 +12,8 @@ public sealed class ExternalWindowDock : IDisposable
     private IntPtr _originalParent;
     private nint _originalStyle;
     private nint _originalExStyle;
+    private nint _dockedStyle;
+    private nint _dockedExStyle;
     private WINDOWPLACEMENT _originalPlacement;
 
     public ExternalWindowDock(Forms.Panel host)
@@ -43,10 +45,11 @@ public sealed class ExternalWindowDock : IDisposable
         Native.GetWindowPlacement(window, ref _originalPlacement);
 
         Native.ShowWindow(window, Native.SW_RESTORE);
-        nint childStyle = (_originalStyle | Native.WS_CHILD) &
-            ~(Native.WS_POPUP | Native.WS_CAPTION | Native.WS_THICKFRAME | Native.WS_MINIMIZEBOX | Native.WS_MAXIMIZEBOX);
-        Native.SetWindowLongPtr(window, Native.GWL_STYLE, childStyle);
-        Native.SetWindowLongPtr(window, Native.GWL_EXSTYLE, _originalExStyle & ~Native.WS_EX_APPWINDOW);
+        _dockedStyle = (_originalStyle | Native.WS_CHILD | Native.WS_VISIBLE | Native.WS_CLIPCHILDREN | Native.WS_CLIPSIBLINGS) &
+            ~(Native.WS_POPUP | Native.WS_CAPTION | Native.WS_THICKFRAME | Native.WS_MINIMIZEBOX | Native.WS_MAXIMIZEBOX | Native.WS_SYSMENU);
+        _dockedExStyle = _originalExStyle & ~Native.WS_EX_APPWINDOW;
+        Native.SetWindowLongPtr(window, Native.GWL_STYLE, _dockedStyle);
+        Native.SetWindowLongPtr(window, Native.GWL_EXSTYLE, _dockedExStyle);
         Native.SetLastError(0);
         IntPtr previousParent = Native.SetParent(window, _host.Handle);
         int error = Marshal.GetLastWin32Error();
@@ -58,7 +61,7 @@ public sealed class ExternalWindowDock : IDisposable
         }
 
         _resizeTimer.Start();
-        FitWindow();
+        FitWindow(forceFrameChange: true);
         Native.SetForegroundWindow(window);
     }
 
@@ -82,13 +85,31 @@ public sealed class ExternalWindowDock : IDisposable
         if (_originalPlacement.length != 0) Native.SetWindowPlacement(window, ref _originalPlacement);
     }
 
-    private void FitWindow()
+    private void FitWindow(bool forceFrameChange = false)
     {
         if (_window == IntPtr.Zero || !Native.IsWindow(_window) || !_host.IsHandleCreated) return;
+        bool frameChanged = forceFrameChange;
+        if (Native.GetParent(_window) != _host.Handle)
+        {
+            Native.SetParent(_window, _host.Handle);
+            frameChanged = true;
+        }
+        if (Native.GetWindowLongPtr(_window, Native.GWL_STYLE) != _dockedStyle)
+        {
+            Native.SetWindowLongPtr(_window, Native.GWL_STYLE, _dockedStyle);
+            frameChanged = true;
+        }
+        if (Native.GetWindowLongPtr(_window, Native.GWL_EXSTYLE) != _dockedExStyle)
+        {
+            Native.SetWindowLongPtr(_window, Native.GWL_EXSTYLE, _dockedExStyle);
+            frameChanged = true;
+        }
+        if (Native.IsZoomed(_window) || Native.IsIconic(_window)) Native.ShowWindow(_window, Native.SW_RESTORE);
         int width = Math.Max(1, _host.ClientSize.Width);
         int height = Math.Max(1, _host.ClientSize.Height);
-        Native.SetWindowPos(_window, IntPtr.Zero, 0, 0, width, height,
-            Native.SWP_NOZORDER | Native.SWP_NOACTIVATE | Native.SWP_FRAMECHANGED | Native.SWP_SHOWWINDOW);
+        uint flags = Native.SWP_NOZORDER | Native.SWP_NOACTIVATE | Native.SWP_SHOWWINDOW;
+        if (frameChanged) flags |= Native.SWP_FRAMECHANGED;
+        Native.SetWindowPos(_window, IntPtr.Zero, 0, 0, width, height, flags);
     }
 
     public void Dispose()
@@ -124,9 +145,10 @@ public sealed class ExternalWindowDock : IDisposable
     private static class Native
     {
         internal const int GWL_STYLE = -16, GWL_EXSTYLE = -20;
-        internal static readonly nint WS_CHILD = 0x40000000, WS_POPUP = unchecked((nint)0x80000000u), WS_CAPTION = 0x00C00000,
+        internal static readonly nint WS_CHILD = 0x40000000, WS_VISIBLE = 0x10000000, WS_CLIPCHILDREN = 0x02000000,
+            WS_CLIPSIBLINGS = 0x04000000, WS_POPUP = unchecked((nint)0x80000000u), WS_CAPTION = 0x00C00000,
             WS_THICKFRAME = 0x00040000, WS_MINIMIZEBOX = 0x00020000, WS_MAXIMIZEBOX = 0x00010000,
-            WS_EX_APPWINDOW = 0x00040000, WS_EX_TOOLWINDOW = 0x00000080;
+            WS_SYSMENU = 0x00080000, WS_EX_APPWINDOW = 0x00040000, WS_EX_TOOLWINDOW = 0x00000080;
         internal const uint SWP_NOSIZE = 0x0001, SWP_NOMOVE = 0x0002, SWP_NOZORDER = 0x0004,
             SWP_NOACTIVATE = 0x0010, SWP_FRAMECHANGED = 0x0020, SWP_SHOWWINDOW = 0x0040;
         internal const int SW_RESTORE = 9;
@@ -135,6 +157,8 @@ public sealed class ExternalWindowDock : IDisposable
         [DllImport("user32.dll")] internal static extern bool EnumWindows(EnumWindowsProc callback, IntPtr state);
         [DllImport("user32.dll")] internal static extern bool IsWindow(IntPtr window);
         [DllImport("user32.dll")] internal static extern bool IsWindowVisible(IntPtr window);
+        [DllImport("user32.dll")] internal static extern bool IsZoomed(IntPtr window);
+        [DllImport("user32.dll")] internal static extern bool IsIconic(IntPtr window);
         [DllImport("user32.dll", SetLastError = true)] internal static extern IntPtr SetParent(IntPtr child, IntPtr parent);
         [DllImport("user32.dll")] internal static extern IntPtr GetParent(IntPtr window);
         [DllImport("user32.dll", SetLastError = true)] internal static extern bool SetWindowPos(IntPtr window, IntPtr after, int x, int y, int width, int height, uint flags);
