@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -12,6 +13,7 @@ using Button = System.Windows.Controls.Button;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using MediaColor = System.Windows.Media.Color;
 using MediaColorConverter = System.Windows.Media.ColorConverter;
+using MediaFontFamily = System.Windows.Media.FontFamily;
 using MessageBox = System.Windows.MessageBox;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 namespace GeosangHelper;
@@ -23,6 +25,7 @@ public partial class GeosangHelperPane : System.Windows.Controls.UserControl, ID
     private DateTimeOffset? battleStartedAt;
     private bool ready;
     private Window? settingsWindow;
+    private FontFamilyOption[] fontFamilyOptions = [];
     private Window? HostWindow => Window.GetWindow(this);
     public ObservableCollection<ImageShortcutItem> ImageShortcuts => state.ImageShortcuts;
     public ObservableCollection<ProgramShortcutItem> ProgramShortcuts => state.ProgramShortcuts;
@@ -34,8 +37,14 @@ public partial class GeosangHelperPane : System.Windows.Controls.UserControl, ID
         catch (Exception ex) { MessageBox.Show($"저장 파일을 읽지 못했습니다. 원본 보호를 위해 앱을 종료합니다.\n{Storage.FilePath}\n.bak 파일로 복구할 수 있습니다.\n{ex.Message}"); Application.Current.Shutdown(); return; }
         TopBox.IsChecked = state.AlwaysOnTop;
         SizeLockBox.IsChecked = state.SizeLocked;
-        FontFamilyCombo.ItemsSource = Fonts.SystemFontFamilies.Select(x => x.Source).Distinct(StringComparer.CurrentCultureIgnoreCase).OrderBy(x => x).ToArray();
-        FontFamilyCombo.SelectedItem = state.FontFamily;
+        fontFamilyOptions = Fonts.SystemFontFamilies
+            .Select(FontFamilyOption.Create)
+            .GroupBy(x => x.Source, StringComparer.CurrentCultureIgnoreCase)
+            .Select(x => x.First())
+            .OrderBy(x => x.DisplayName, StringComparer.CurrentCultureIgnoreCase)
+            .ToArray();
+        FontFamilyCombo.ItemsSource = fontFamilyOptions;
+        FontFamilyCombo.SelectedItem = fontFamilyOptions.FirstOrDefault(x => x.Matches(state.FontFamily));
         if (FontFamilyCombo.SelectedIndex < 0 && FontFamilyCombo.Items.Count > 0) FontFamilyCombo.SelectedIndex = 0;
         FontSizeSlider.Value = state.FontSize;
         PanelOpacitySlider.Value = state.PanelOpacity;
@@ -127,8 +136,8 @@ public partial class GeosangHelperPane : System.Windows.Controls.UserControl, ID
     }
     private void FontFamilyChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (!ready || FontFamilyCombo.SelectedItem is not string family || string.IsNullOrWhiteSpace(family)) return;
-        state.FontFamily = family;
+        if (!ready || FontFamilyCombo.SelectedItem is not FontFamilyOption option) return;
+        state.FontFamily = option.Source;
         ApplyTextAppearance();
         Save();
     }
@@ -481,4 +490,40 @@ public partial class GeosangHelperPane : System.Windows.Controls.UserControl, ID
         gameMonitor = null;
         tick.Stop();
     }
+}
+
+public sealed class FontFamilyOption
+{
+    private static readonly XmlLanguage Korean = XmlLanguage.GetLanguage("ko-KR");
+    private static readonly XmlLanguage English = XmlLanguage.GetLanguage("en-US");
+
+    private FontFamilyOption(MediaFontFamily family, string displayName)
+    {
+        Family = family;
+        Source = family.Source;
+        DisplayName = displayName;
+    }
+
+    public MediaFontFamily Family { get; }
+    public string Source { get; }
+    public string DisplayName { get; }
+
+    public static FontFamilyOption Create(MediaFontFamily family)
+    {
+        string displayName = GetName(family, Korean)
+            ?? family.FamilyNames.FirstOrDefault(x => x.Key.IetfLanguageTag.StartsWith("ko", StringComparison.OrdinalIgnoreCase)).Value
+            ?? GetName(family, English)
+            ?? family.Source;
+        return new FontFamilyOption(family, displayName);
+    }
+
+    public bool Matches(string savedName)
+    {
+        if (string.Equals(Source, savedName, StringComparison.CurrentCultureIgnoreCase)
+            || string.Equals(DisplayName, savedName, StringComparison.CurrentCultureIgnoreCase)) return true;
+        return Family.FamilyNames.Values.Any(x => string.Equals(x, savedName, StringComparison.CurrentCultureIgnoreCase));
+    }
+
+    private static string? GetName(MediaFontFamily family, XmlLanguage language) =>
+        family.FamilyNames.TryGetValue(language, out string? name) ? name : null;
 }

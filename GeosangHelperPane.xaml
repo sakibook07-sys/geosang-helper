@@ -122,7 +122,18 @@
       <DockPanel Margin="3,7"><TextBlock Text="글자 크기" FontWeight="Bold"/><TextBlock x:Name="FontSizeValue" DockPanel.Dock="Right" FontWeight="Bold"/></DockPanel>
       <Slider x:Name="FontSizeSlider" Minimum="9" Maximum="32" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="FontSizeChanged"/>
       <TextBlock Text="프로그램 글꼴" FontWeight="Bold" Margin="3,12,3,4"/>
-      <ComboBox x:Name="FontFamilyCombo" SelectionChanged="FontFamilyChanged" Margin="3" Padding="5"/>
+      <ComboBox x:Name="FontFamilyCombo" SelectionChanged="FontFamilyChanged" Margin="3" Padding="5" MaxDropDownHeight="380">
+       <ComboBox.ItemTemplate>
+        <DataTemplate>
+         <Grid MinHeight="32" Margin="2">
+          <Grid.ColumnDefinitions><ColumnDefinition Width="190"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+          <TextBlock Text="{Binding DisplayName}" FontFamily="{Binding Family}" FontSize="15" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip="{Binding Source}"/>
+          <TextBlock Grid.Column="1" Text="가나다 Aa 123" FontFamily="{Binding Family}" FontSize="17" Margin="14,0,8,0" VerticalAlignment="Center"/>
+         </Grid>
+        </DataTemplate>
+       </ComboBox.ItemTemplate>
+      </ComboBox>
+      <TextBlock Text="글꼴 이름과 미리보기를 함께 표시합니다." Foreground="{DynamicResource MutedTextBrush}" FontSize="{DynamicResource SmallFontSize}" Margin="3,2,3,4"/>
       <DockPanel Margin="3,12,3,4"><TextBlock Text="글자 색상" FontWeight="Bold"/><Border x:Name="FontColorSample" DockPanel.Dock="Right" Width="34" Height="20" BorderBrush="#6B5148" BorderThickness="1" CornerRadius="3"/></DockPanel>
       <Button Content="색상 선택" Click="ChooseFontColor" HorizontalAlignment="Left"/>
       <DockPanel Margin="3,12,3,4"><TextBlock Text="패널 투명도" FontWeight="Bold"/><TextBlock x:Name="PanelOpacityValue" DockPanel.Dock="Right" FontWeight="Bold"/></DockPanel>
