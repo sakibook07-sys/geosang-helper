@@ -142,6 +142,21 @@ public sealed class ExternalWindowDock : IDisposable
         return result.OrderBy(x => x.ProcessName).ThenBy(x => x.Title).ToArray();
     }
 
+    public static bool WindowExists(IntPtr window) => window != IntPtr.Zero && Native.IsWindow(window);
+    public static string GetWindowTitle(IntPtr window) => WindowExists(window) ? Native.GetWindowTitle(window) : string.Empty;
+    public static void HideWindow(IntPtr window)
+    {
+        if (WindowExists(window)) Native.ShowWindow(window, Native.SW_HIDE);
+    }
+    public static void RestoreWindow(IntPtr window)
+    {
+        if (WindowExists(window)) Native.ShowWindow(window, Native.SW_RESTORE);
+    }
+    public static void RequestClose(IntPtr window)
+    {
+        if (WindowExists(window)) Native.PostMessage(window, Native.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+    }
+
     private static class Native
     {
         internal const int GWL_STYLE = -16, GWL_EXSTYLE = -20;
@@ -151,7 +166,8 @@ public sealed class ExternalWindowDock : IDisposable
             WS_SYSMENU = 0x00080000, WS_EX_APPWINDOW = 0x00040000, WS_EX_TOOLWINDOW = 0x00000080;
         internal const uint SWP_NOSIZE = 0x0001, SWP_NOMOVE = 0x0002, SWP_NOZORDER = 0x0004,
             SWP_NOACTIVATE = 0x0010, SWP_FRAMECHANGED = 0x0020, SWP_SHOWWINDOW = 0x0040;
-        internal const int SW_RESTORE = 9;
+        internal const int SW_HIDE = 0, SW_RESTORE = 9;
+        internal const uint WM_CLOSE = 0x0010;
 
         internal delegate bool EnumWindowsProc(IntPtr window, IntPtr state);
         [DllImport("user32.dll")] internal static extern bool EnumWindows(EnumWindowsProc callback, IntPtr state);
@@ -164,6 +180,7 @@ public sealed class ExternalWindowDock : IDisposable
         [DllImport("user32.dll", SetLastError = true)] internal static extern bool SetWindowPos(IntPtr window, IntPtr after, int x, int y, int width, int height, uint flags);
         [DllImport("user32.dll")] internal static extern bool ShowWindow(IntPtr window, int command);
         [DllImport("user32.dll")] internal static extern bool SetForegroundWindow(IntPtr window);
+        [DllImport("user32.dll")] internal static extern bool PostMessage(IntPtr window, uint message, IntPtr wParam, IntPtr lParam);
         [DllImport("user32.dll")] internal static extern int GetWindowTextLength(IntPtr window);
         [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetWindowText(IntPtr window, System.Text.StringBuilder text, int count);
         [DllImport("user32.dll")] internal static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);

@@ -21,12 +21,16 @@ public partial class MainWindow : Window
     private readonly HubSettings _settings = HubSettings.Load();
     private readonly ObservableCollection<BookmarkItem> _bookmarks;
     private readonly ObservableCollection<BrowserTabEntry> _browserTabs = new();
+    private readonly ObservableCollection<ExternalProgramTabEntry> _externalProgramTabs = new();
     private BrowserTabEntry? _activeBrowserTab;
+    private ExternalProgramTabEntry? _activeProgramTab;
     private CoreWebView2Environment? _webEnvironment;
     private bool _browserReady;
     private bool _marketReady;
     private bool _isClosing;
+    private bool _changingProgramTab;
     private readonly ExternalWindowDock _externalWindowDock;
+    private readonly DispatcherTimer _externalProgramTimer = new() { Interval = TimeSpan.FromSeconds(1) };
 
     private static readonly ServerOption[] Servers =
     {
@@ -40,16 +44,19 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _externalWindowDock = new ExternalWindowDock(ExternalProgramPanel);
-        _externalWindowDock.Detached += (_, _) => Dispatcher.Invoke(ShowBrowserArea);
+        _externalWindowDock.Detached += ExternalWindowDock_Detached;
         _bookmarks = new ObservableCollection<BookmarkItem>(_settings.Bookmarks ?? new List<BookmarkItem>());
         foreach (var bookmark in _bookmarks) EnsureBookmarkIcon(bookmark);
         BookmarkItems.ItemsSource = _bookmarks;
         BrowserTabItems.ItemsSource = _browserTabs;
+        ExternalProgramTabItems.ItemsSource = _externalProgramTabs;
         ImageShortcutButtons.ItemsSource = HelperPane.ImageShortcuts;
         ProgramShortcutButtons.ItemsSource = HelperPane.ProgramShortcuts;
         ApplySettings();
         Loaded += MainWindow_Loaded;
         Closing += MainWindow_Closing;
+        _externalProgramTimer.Tick += (_, _) => RefreshExternalProgramTabs();
+        _externalProgramTimer.Start();
     }
 
     private void ApplySettings()
@@ -221,6 +228,7 @@ public partial class MainWindow : Window
 
     private void NavigateBrowser(string? input)
     {
+        ShowBrowserArea();
         var browser = CurrentBrowser;
         if (!_browserReady || browser?.CoreWebView2 == null) return;
         string destination = NormalizeBrowserInput(input);
@@ -267,8 +275,8 @@ public partial class MainWindow : Window
         if (e.Key == Key.Enter) { NavigateBrowser(BrowserAddress.Text); e.Handled = true; }
     }
     private WebView2? CurrentBrowser => _activeBrowserTab?.View;
-    private void BrowserBack_Click(object sender, RoutedEventArgs e) { if (CurrentBrowser is { CanGoBack: true } browser) browser.GoBack(); }
-    private void BrowserForward_Click(object sender, RoutedEventArgs e) { if (CurrentBrowser is { CanGoForward: true } browser) browser.GoForward(); }
+    private void BrowserBack_Click(object sender, RoutedEventArgs e) { ShowBrowserArea(); if (CurrentBrowser is { CanGoBack: true } browser) browser.GoBack(); }
+    private void BrowserForward_Click(object sender, RoutedEventArgs e) { ShowBrowserArea(); if (CurrentBrowser is { CanGoForward: true } browser) browser.GoForward(); }
     private void BrowserHome_Click(object sender, RoutedEventArgs e) => NavigateBrowser(_settings.HomeUrl);
     private void BrowserHomeSettings_Click(object sender, RoutedEventArgs e)
     {
@@ -278,7 +286,7 @@ public partial class MainWindow : Window
         _settings.HomeUrl = dialog.HomeUrl;
         try { _settings.Save(); } catch { }
     }
-    private void BrowserRefresh_Click(object sender, RoutedEventArgs e) { if (CurrentBrowser?.CoreWebView2 != null) CurrentBrowser.Reload(); }
+    private void BrowserRefresh_Click(object sender, RoutedEventArgs e) { ShowBrowserArea(); if (CurrentBrowser?.CoreWebView2 != null) CurrentBrowser.Reload(); }
 
     private void ExternalProgramAttach_Click(object sender, RoutedEventArgs e)
     {
@@ -336,13 +344,35 @@ public partial class MainWindow : Window
 
     private void AttachExternalWindow(ExternalWindowInfo window)
     {
+        var tab = _externalProgramTabs.FirstOrDefault(x => x.Handle == window.Handle);
+        if (tab == null)
+        {
+            tab = new ExternalProgramTabEntry(window.Handle, window.ProcessId, window.ProcessName, window.Title);
+            _externalProgramTabs.Add(tab);
+        }
+        SwitchToExternalProgramTab(tab);
+    }
+
+    private void SwitchToExternalProgramTab(ExternalProgramTabEntry tab)
+    {
         try
         {
+            if (!ExternalWindowDock.WindowExists(tab.Handle))
+            {
+                _externalProgramTabs.Remove(tab);
+                throw new InvalidOperationException("프로그램 창이 이미 종료되었습니다.");
+            }
+            ReleaseActiveProgramToTab();
+            _activeProgramTab = tab;
+            foreach (var browserTab in _browserTabs) browserTab.IsActive = false;
+            foreach (var programTab in _externalProgramTabs) programTab.IsActive = programTab == tab;
             BrowserViewsHost.Visibility = Visibility.Collapsed;
             ExternalProgramHost.Visibility = Visibility.Visible;
             ExternalProgramDetachButton.Visibility = Visibility.Visible;
             ExternalProgramHost.UpdateLayout();
-            _externalWindowDock.Attach(window.Handle);
+            _changingProgramTab = true;
+            try { _externalWindowDock.Attach(tab.Handle); }
+            finally { _changingProgramTab = false; }
         }
         catch (Exception ex)
         {
@@ -352,24 +382,95 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ExternalProgramDetach_Click(object sender, RoutedEventArgs e) => _externalWindowDock.Detach();
+    private void ExternalProgramTab_Click(object sender, RoutedEventArgs e)
+    {
+        if (((FrameworkElement)sender).DataContext is ExternalProgramTabEntry tab) SwitchToExternalProgramTab(tab);
+    }
 
-    private void ShowBrowserArea()
+    private void ExternalProgramTabClose_Click(object sender, RoutedEventArgs e)
+    {
+        if (((FrameworkElement)sender).DataContext is not ExternalProgramTabEntry tab) return;
+        bool active = tab == _activeProgramTab;
+        if (active) ReleaseActiveProgramToTab(hideWindow: false);
+        ExternalWindowDock.RestoreWindow(tab.Handle);
+        ExternalWindowDock.RequestClose(tab.Handle);
+        _externalProgramTabs.Remove(tab);
+        if (active) ShowBrowserArea(releaseProgram: false);
+        e.Handled = true;
+    }
+
+    private void ExternalProgramDetach_Click(object sender, RoutedEventArgs e) => ShowBrowserArea();
+
+    private void ShowBrowserArea(bool releaseProgram = true)
     {
         if (_isClosing) return;
+        if (releaseProgram) ReleaseActiveProgramToTab();
         ExternalProgramHost.Visibility = Visibility.Collapsed;
         BrowserViewsHost.Visibility = Visibility.Visible;
         ExternalProgramDetachButton.Visibility = Visibility.Collapsed;
+        if (_activeBrowserTab != null) _activeBrowserTab.IsActive = true;
+    }
+
+    private void ReleaseActiveProgramToTab(bool hideWindow = true)
+    {
+        var tab = _activeProgramTab;
+        if (tab == null) return;
+        _changingProgramTab = true;
+        try
+        {
+            if (_externalWindowDock.IsAttached) _externalWindowDock.Detach();
+            if (hideWindow) ExternalWindowDock.HideWindow(tab.Handle);
+            tab.IsActive = false;
+            _activeProgramTab = null;
+        }
+        finally { _changingProgramTab = false; }
+    }
+
+    private void ExternalWindowDock_Detached(object? sender, EventArgs e)
+    {
+        if (_isClosing || _changingProgramTab) return;
+        void HandleDetach()
+        {
+            RefreshExternalProgramTabs();
+            ShowBrowserArea(releaseProgram: false);
+        }
+        if (Dispatcher.CheckAccess()) HandleDetach();
+        else Dispatcher.BeginInvoke(HandleDetach);
+    }
+
+    private void RefreshExternalProgramTabs()
+    {
+        foreach (var tab in _externalProgramTabs.ToArray())
+        {
+            if (!ExternalWindowDock.WindowExists(tab.Handle))
+            {
+                if (tab == _activeProgramTab)
+                {
+                    _changingProgramTab = true;
+                    try { if (_externalWindowDock.IsAttached) _externalWindowDock.Detach(restoreWindow: false); }
+                    finally { _changingProgramTab = false; }
+                    _activeProgramTab = null;
+                }
+                _externalProgramTabs.Remove(tab);
+                continue;
+            }
+            string title = ExternalWindowDock.GetWindowTitle(tab.Handle);
+            if (!string.IsNullOrWhiteSpace(title)) tab.Title = title;
+        }
+        if (_activeProgramTab == null && ExternalProgramHost.Visibility == Visibility.Visible)
+            ShowBrowserArea(releaseProgram: false);
     }
 
     private async void BrowserNewTab_Click(object sender, RoutedEventArgs e)
     {
+        ShowBrowserArea();
         if (_browserReady) await CreateBrowserTabAsync(_settings.HomeUrl, select: true);
     }
 
     private void BrowserTab_Click(object sender, RoutedEventArgs e)
     {
         if (((FrameworkElement)sender).DataContext is not BrowserTabEntry tab) return;
+        ShowBrowserArea();
         SelectBrowserTab(tab);
     }
 
@@ -613,7 +714,10 @@ public partial class MainWindow : Window
     private void MainWindow_Closing(object? sender, CancelEventArgs e)
     {
         _isClosing = true;
+        _externalProgramTimer.Stop();
+        _changingProgramTab = true;
         _externalWindowDock.Dispose();
+        foreach (var programTab in _externalProgramTabs) ExternalWindowDock.RestoreWindow(programTab.Handle);
         CpuTemperature.Dispose();
         HelperPane.Dispose();
         _settings.WasMaximized = WindowState == WindowState.Maximized;
@@ -672,6 +776,27 @@ public partial class MainWindow : Window
         public required WebView2 View { get; init; }
         public string Title { get => _title; set { if (_title == value) return; _title = value; Changed(nameof(Title)); } }
         public string Url { get => _url; set { if (_url == value) return; _url = value; Changed(nameof(Url)); } }
+        public bool IsActive { get => _isActive; set { if (_isActive == value) return; _isActive = value; Changed(nameof(IsActive)); } }
+        public event PropertyChangedEventHandler? PropertyChanged;
+        private void Changed(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
+
+    private sealed class ExternalProgramTabEntry : INotifyPropertyChanged
+    {
+        private string _title;
+        private bool _isActive;
+        public ExternalProgramTabEntry(IntPtr handle, int processId, string processName, string title)
+        {
+            Handle = handle;
+            ProcessId = processId;
+            ProcessName = processName;
+            _title = title;
+        }
+        public IntPtr Handle { get; }
+        public int ProcessId { get; }
+        public string ProcessName { get; }
+        public string Title { get => _title; set { if (_title == value) return; _title = value; Changed(nameof(Title)); Changed(nameof(DisplayTitle)); } }
+        public string DisplayTitle => "▣ " + (string.IsNullOrWhiteSpace(Title) ? ProcessName : Title);
         public bool IsActive { get => _isActive; set { if (_isActive == value) return; _isActive = value; Changed(nameof(IsActive)); } }
         public event PropertyChangedEventHandler? PropertyChanged;
         private void Changed(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

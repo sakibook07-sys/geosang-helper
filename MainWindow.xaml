@@ -36,29 +36,50 @@
                 <DockPanel Grid.Row="1" Background="#D7CCC5" LastChildFill="True">
                     <Button DockPanel.Dock="Right" Content="＋ 새 탭" Click="BrowserNewTab_Click" Height="29" Padding="8,2" Margin="2"/>
                     <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                        <ItemsControl x:Name="BrowserTabItems">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border CornerRadius="5,5,0,0" Margin="2,2,0,0" Padding="2" BorderBrush="#A8968C" BorderThickness="1,1,1,0">
+                        <StackPanel Orientation="Horizontal">
+                            <ItemsControl x:Name="BrowserTabItems">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border CornerRadius="5,5,0,0" Margin="2,2,0,0" Padding="2" BorderBrush="#A8968C" BorderThickness="1,1,1,0">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="#BDAFA7"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsActive}" Value="True"><Setter Property="Background" Value="White"/></DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Content="{Binding Title}" Click="BrowserTab_Click" ToolTip="{Binding Url}" MinWidth="95" MaxWidth="180" Height="25" Padding="6,1" Margin="0" BorderThickness="0" Background="Transparent"/>
+                                                <Button Content="×" Click="BrowserTabClose_Click" Width="24" Height="24" Padding="0" Margin="0" BorderThickness="0" Background="Transparent" ToolTip="탭 닫기"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <ItemsControl x:Name="ExternalProgramTabItems">
+                                <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate><DataTemplate>
+                                    <Border CornerRadius="5,5,0,0" Margin="2,2,0,0" Padding="2" BorderBrush="#8D7057" BorderThickness="1,1,1,0">
                                         <Border.Style>
                                             <Style TargetType="Border">
-                                                <Setter Property="Background" Value="#BDAFA7"/>
+                                                <Setter Property="Background" Value="#CEB99E"/>
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsActive}" Value="True"><Setter Property="Background" Value="White"/></DataTrigger>
+                                                    <DataTrigger Binding="{Binding IsActive}" Value="True"><Setter Property="Background" Value="#FFF5E8"/></DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </Border.Style>
                                         <StackPanel Orientation="Horizontal">
-                                            <Button Content="{Binding Title}" Click="BrowserTab_Click" ToolTip="{Binding Url}" MinWidth="95" MaxWidth="180" Height="25" Padding="6,1" Margin="0" BorderThickness="0" Background="Transparent"/>
-                                            <Button Content="×" Click="BrowserTabClose_Click" Width="24" Height="24" Padding="0" Margin="0" BorderThickness="0" Background="Transparent" ToolTip="탭 닫기"/>
+                                            <Button Content="{Binding DisplayTitle}" Click="ExternalProgramTab_Click" ToolTip="{Binding Title}" MinWidth="95" MaxWidth="180" Height="25" Padding="6,1" Margin="0" BorderThickness="0" Background="Transparent"/>
+                                            <Button Content="×" Click="ExternalProgramTabClose_Click" Width="24" Height="24" Padding="0" Margin="0" BorderThickness="0" Background="Transparent" ToolTip="프로그램 종료"/>
                                         </StackPanel>
                                     </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                                </DataTemplate></ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
                     </ScrollViewer>
                 </DockPanel>
                 <DockPanel Grid.Row="2" Background="#F3ECE7" LastChildFill="True">
