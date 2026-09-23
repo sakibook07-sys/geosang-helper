@@ -100,7 +100,7 @@ public class ProgramShortcutItem
 }
 public class AppState
 {
-    public int Version { get; set; } = 4;
+    public int Version { get; set; } = 5;
     public double Left { get; set; } = 80;
     public double Top { get; set; } = 80;
     public double Width { get; set; } = 420;
@@ -110,6 +110,7 @@ public class AppState
     public int SelectedTab { get; set; }
     public string? BackgroundImagePath { get; set; }
     public string FontColor { get; set; } = "#321E18";
+    public string FontFamily { get; set; } = "맑은 고딕";
     public double FontSize { get; set; } = 14;
     public double PanelOpacity { get; set; } = 0.28;
     public bool GameMonitoringEnabled { get; set; } = true;

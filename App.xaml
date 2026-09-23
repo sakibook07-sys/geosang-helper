@@ -13,6 +13,10 @@
         <sys:Double x:Key="HeadingFontSize">18</sys:Double>
         <sys:Double x:Key="SmallFontSize">11</sys:Double>
         <sys:Double x:Key="TimerFontSize">16</sys:Double>
+        <FontFamily x:Key="AppFontFamily">맑은 고딕</FontFamily>
+        <Style TargetType="Window">
+            <Setter Property="FontFamily" Value="{DynamicResource AppFontFamily}"/>
+        </Style>
         <Style TargetType="Button">
             <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
             <Setter Property="Background" Value="#E9F5ECE7"/>

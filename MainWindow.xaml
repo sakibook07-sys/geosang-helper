@@ -83,8 +83,10 @@
                     </ScrollViewer>
                 </DockPanel>
                 <DockPanel Grid.Row="2" Background="#F3ECE7" LastChildFill="True">
-                    <TextBlock DockPanel.Dock="Left" Text="북마크" Margin="10,0,4,0" VerticalAlignment="Center" FontWeight="Bold"/>
-                    <Button DockPanel.Dock="Right" Content="현재 페이지 추가 ★" Click="BookmarkAdd_Click" Height="28" Padding="7,1" Margin="2"/>
+                    <StackPanel DockPanel.Dock="Left" Margin="6,0,4,0" VerticalAlignment="Center">
+                        <TextBlock Text="북마크" FontSize="11" TextAlignment="Center" FontWeight="Bold"/>
+                        <Button Content="+ 현재 페이지" Click="BookmarkAdd_Click" Height="16" FontSize="9" Padding="3,0" Margin="0" ToolTip="현재 페이지를 북마크에 추가"/>
+                    </StackPanel>
                     <ItemsControl x:Name="ProgramShortcutButtons" DockPanel.Dock="Right" Margin="2,1" MaxWidth="420">
                         <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel Orientation="Horizontal"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate><DataTemplate>
@@ -145,6 +147,7 @@
                 <Grid>
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                     <DockPanel Background="#302925">
+                        <Button DockPanel.Dock="Right" Content="환경설정" Click="HelperSettings_Click" ToolTip="환경설정을 별도 창으로 열기"/>
                         <Button DockPanel.Dock="Right" Content="＋" Click="HelperZoomIn_Click"/>
                         <TextBlock x:Name="HelperZoomText" DockPanel.Dock="Right" Width="54" TextAlignment="Center" VerticalAlignment="Center" Foreground="White" FontWeight="Bold"/>
                         <Button DockPanel.Dock="Right" Content="－" Click="HelperZoomOut_Click"/>

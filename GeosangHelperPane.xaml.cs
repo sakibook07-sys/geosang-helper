@@ -22,6 +22,7 @@ public partial class GeosangHelperPane : System.Windows.Controls.UserControl, ID
     private GameNetworkMonitor? gameMonitor;
     private DateTimeOffset? battleStartedAt;
     private bool ready;
+    private Window? settingsWindow;
     private Window? HostWindow => Window.GetWindow(this);
     public ObservableCollection<ImageShortcutItem> ImageShortcuts => state.ImageShortcuts;
     public ObservableCollection<ProgramShortcutItem> ProgramShortcuts => state.ProgramShortcuts;
@@ -33,6 +34,9 @@ public partial class GeosangHelperPane : System.Windows.Controls.UserControl, ID
         catch (Exception ex) { MessageBox.Show($"저장 파일을 읽지 못했습니다. 원본 보호를 위해 앱을 종료합니다.\n{Storage.FilePath}\n.bak 파일로 복구할 수 있습니다.\n{ex.Message}"); Application.Current.Shutdown(); return; }
         TopBox.IsChecked = state.AlwaysOnTop;
         SizeLockBox.IsChecked = state.SizeLocked;
+        FontFamilyCombo.ItemsSource = Fonts.SystemFontFamilies.Select(x => x.Source).Distinct(StringComparer.CurrentCultureIgnoreCase).OrderBy(x => x).ToArray();
+        FontFamilyCombo.SelectedItem = state.FontFamily;
+        if (FontFamilyCombo.SelectedIndex < 0 && FontFamilyCombo.Items.Count > 0) FontFamilyCombo.SelectedIndex = 0;
         FontSizeSlider.Value = state.FontSize;
         PanelOpacitySlider.Value = state.PanelOpacity;
         ApplyAppearance();
@@ -46,7 +50,7 @@ public partial class GeosangHelperPane : System.Windows.Controls.UserControl, ID
         BattleLabelBox.Text = state.BattleLabel;
         state.GameMonitoringEnabled = false;
         GameMonitorBox.IsChecked = false;
-        MainTabs.SelectedIndex = state.SelectedTab is 0 or 1 or 2 or 6 ? state.SelectedTab : 0;
+        MainTabs.SelectedIndex = state.SelectedTab is 0 or 1 or 2 ? state.SelectedTab : 0;
         UpdateEmptyMessages();
         UpdateGameSummaries();
         ready = true;
@@ -61,8 +65,38 @@ public partial class GeosangHelperPane : System.Windows.Controls.UserControl, ID
             if (HostWindow != null)
             {
                 HostWindow.Topmost = state.AlwaysOnTop;
+                HostWindow.FontFamily = new System.Windows.Media.FontFamily(state.FontFamily);
             }
         };
+    }
+    public void OpenSettingsWindow()
+    {
+        if (settingsWindow is { IsVisible: true })
+        {
+            if (settingsWindow.WindowState == WindowState.Minimized) settingsWindow.WindowState = WindowState.Normal;
+            settingsWindow.Activate();
+            return;
+        }
+        if (SettingsTab.Content == SettingsContent) SettingsTab.Content = null;
+        settingsWindow = new Window
+        {
+            Title = "거상 통합 도우미 환경설정",
+            Width = 560,
+            Height = 760,
+            MinWidth = 440,
+            MinHeight = 500,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Owner = HostWindow,
+            ShowInTaskbar = false,
+            Content = SettingsContent
+        };
+        settingsWindow.Closed += (_, _) =>
+        {
+            if (settingsWindow != null) settingsWindow.Content = null;
+            settingsWindow = null;
+            Save();
+        };
+        settingsWindow.Show();
     }
     private bool Save()
     {
@@ -90,6 +124,13 @@ public partial class GeosangHelperPane : System.Windows.Controls.UserControl, ID
         if (!ready) return;
         state.FontSize = Math.Round(FontSizeSlider.Value);
         ApplyTextAppearance(); Save();
+    }
+    private void FontFamilyChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!ready || FontFamilyCombo.SelectedItem is not string family || string.IsNullOrWhiteSpace(family)) return;
+        state.FontFamily = family;
+        ApplyTextAppearance();
+        Save();
     }
     private void PanelOpacityChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
@@ -379,6 +420,12 @@ public partial class GeosangHelperPane : System.Windows.Controls.UserControl, ID
         try { color = (MediaColor)MediaColorConverter.ConvertFromString(state.FontColor); }
         catch { color = MediaColor.FromRgb(50, 30, 24); state.FontColor = "#321E18"; }
         Application.Current.Resources["AppTextBrush"] = new SolidColorBrush(color);
+        System.Windows.Media.FontFamily fontFamily;
+        try { fontFamily = new System.Windows.Media.FontFamily(state.FontFamily); }
+        catch { fontFamily = new System.Windows.Media.FontFamily("맑은 고딕"); state.FontFamily = "맑은 고딕"; }
+        Application.Current.Resources["AppFontFamily"] = fontFamily;
+        FontFamily = fontFamily;
+        if (Application.Current.MainWindow != null) Application.Current.MainWindow.FontFamily = fontFamily;
         Application.Current.Resources["MutedTextBrush"] = new SolidColorBrush(MediaColor.FromArgb(190, color.R, color.G, color.B));
         Application.Current.Resources["BaseFontSize"] = state.FontSize;
         Application.Current.Resources["HeadingFontSize"] = state.FontSize + 4;
@@ -423,6 +470,12 @@ public partial class GeosangHelperPane : System.Windows.Controls.UserControl, ID
 
     public void Dispose()
     {
+        if (settingsWindow != null)
+        {
+            settingsWindow.Content = null;
+            settingsWindow.Close();
+            settingsWindow = null;
+        }
         Save();
         gameMonitor?.Dispose();
         gameMonitor = null;

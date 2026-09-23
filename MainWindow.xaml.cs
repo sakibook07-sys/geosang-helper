@@ -684,6 +684,7 @@ public partial class MainWindow : Window
     }
 
     private void HelperViewport_SizeChanged(object sender, SizeChangedEventArgs e) => ApplyHelperZoom();
+    private void HelperSettings_Click(object sender, RoutedEventArgs e) => HelperPane.OpenSettingsWindow();
     private void BrowserZoomOut_Click(object sender, RoutedEventArgs e) => SetBrowserZoom(_settings.BrowserZoom - 0.1);
     private void BrowserZoomIn_Click(object sender, RoutedEventArgs e) => SetBrowserZoom(_settings.BrowserZoom + 0.1);
     private void HelperZoomOut_Click(object sender, RoutedEventArgs e) => SetHelperZoom(_settings.HelperZoom - 0.1);

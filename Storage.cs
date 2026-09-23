@@ -40,13 +40,20 @@ public static class Storage
             state.ProgramShortcuts ??= new();
             migrated = true;
         }
+        if (state.Version == 4)
+        {
+            state.Version = 5;
+            state.FontFamily = "맑은 고딕";
+            migrated = true;
+        }
         state.ImageShortcuts ??= new();
         state.ProgramShortcuts ??= new();
-        if (state.Version != 4 || !double.IsFinite(state.Left) || !double.IsFinite(state.Top)
+        if (state.Version != 5 || !double.IsFinite(state.Left) || !double.IsFinite(state.Top)
             || !double.IsFinite(state.Width) || !double.IsFinite(state.Height) || state.Width < 1 || state.Height < 1 || state.SelectedTab < 0 || state.SelectedTab > 6
             || !double.IsFinite(state.FontSize) || state.FontSize < 9 || state.FontSize > 32
             || !double.IsFinite(state.PanelOpacity) || state.PanelOpacity < 0 || state.PanelOpacity > 0.9
             || !Regex.IsMatch(state.FontColor ?? "", "^#[0-9A-Fa-f]{6}$")
+            || string.IsNullOrWhiteSpace(state.FontFamily) || state.FontFamily.Length > 200
             || state.Timers.Any(t => t == null || string.IsNullOrWhiteSpace(t.Name) || t.EndsAtUnixMs < 0 || t.EndsAtUnixMs > 253402300799999 || t.DurationSeconds < 60 || t.DurationSeconds > 31536000)
             || state.Checklist.Any(c => c == null || string.IsNullOrWhiteSpace(c.Name))
             || state.Battles == null || state.MarketListings == null || string.IsNullOrWhiteSpace(state.BattleLabel)
