@@ -1,6 +1,8 @@
 using System.Windows;
 using System.IO;
+using System.Runtime.InteropServices;
 using LibreHardwareMonitor.Hardware;
+using System.Windows.Threading;
 using UserControl = System.Windows.Controls.UserControl;
 
 namespace GeosangHub;
@@ -8,22 +10,42 @@ namespace GeosangHub;
 public partial class CpuTemperaturePane : UserControl, IDisposable
 {
     private readonly CancellationTokenSource _stop = new();
+    private readonly DispatcherTimer _displayTimer = new() { Interval = TimeSpan.FromSeconds(1) };
     private bool _started;
     private bool _disposed;
     private bool _loggedFirstReading;
     private bool _firstReadingEmpty;
     private bool _loggedRecovery;
+    private int _switchIntervalSeconds = 5;
+    private DateTimeOffset _nextSwitchAt;
+    private bool _showMemory;
+    private MetricDisplay _cpuDisplay = new("-- °C", "센서 준비 중", "CPU 온도 센서를 준비하고 있습니다.");
 
     public CpuTemperaturePane()
     {
         InitializeComponent();
+        _displayTimer.Tick += (_, _) => UpdateRotatingDisplay();
         Loaded += (_, _) => Start();
+    }
+
+    public void SetSwitchInterval(int seconds)
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.Invoke(() => SetSwitchInterval(seconds));
+            return;
+        }
+        _switchIntervalSeconds = Math.Clamp(seconds, 2, 60);
+        _nextSwitchAt = DateTimeOffset.Now.AddSeconds(_switchIntervalSeconds);
     }
 
     private void Start()
     {
         if (_started || _disposed) return;
         _started = true;
+        _nextSwitchAt = DateTimeOffset.Now.AddSeconds(_switchIntervalSeconds);
+        _displayTimer.Start();
+        UpdateRotatingDisplay();
         _ = Task.Run(() => ReadLoopAsync(_stop.Token));
     }
 
@@ -115,25 +137,75 @@ public partial class CpuTemperaturePane : UserControl, IDisposable
         if (_disposed) return;
         if (readings.Length == 0)
         {
-            TemperatureText.Text = "-- °C";
-            StatusText.Text = "측정 불가";
-            ToolTip = cpuName + "\n현재 센서값: " + sensorDetails + "\n센서를 다시 연결해 보겠습니다. 관리자 권한에서도 값이 없으면 센서 로그를 확인하세요.";
+            _cpuDisplay = new("-- °C", "측정 불가",
+                cpuName + "\n현재 센서값: " + sensorDetails + "\n센서를 다시 연결해 보겠습니다. 관리자 권한에서도 값이 없으면 센서 로그를 확인하세요.");
+            RefreshVisibleMetric();
             return;
         }
 
         var primary = readings[0];
-        TemperatureText.Text = $"{primary.Value:0.0} °C";
-        StatusText.Text = primary.Name;
-        ToolTip = cpuName + $"\n{DateTime.Now:HH:mm:ss} 갱신\n" +
-            string.Join("\n", readings.Take(8).Select(r => $"{r.Name}: {r.Value:0.0} °C"));
+        _cpuDisplay = new($"{primary.Value:0.0} °C", primary.Name,
+            cpuName + $"\n{DateTime.Now:HH:mm:ss} 갱신\n" +
+            string.Join("\n", readings.Take(8).Select(r => $"{r.Name}: {r.Value:0.0} °C")));
+        RefreshVisibleMetric();
     }
 
     private void ShowError(string message)
     {
         if (_disposed) return;
-        TemperatureText.Text = "-- °C";
-        StatusText.Text = "센서 오류";
-        ToolTip = message + "\n필요한 경우 앱을 관리자 권한으로 다시 실행해보세요.";
+        _cpuDisplay = new("-- °C", "센서 오류", message + "\n필요한 경우 앱을 관리자 권한으로 다시 실행해보세요.");
+        RefreshVisibleMetric();
+    }
+
+    private void UpdateRotatingDisplay()
+    {
+        if (_disposed) return;
+        var now = DateTimeOffset.Now;
+        if (now >= _nextSwitchAt)
+        {
+            _showMemory = !_showMemory;
+            _nextSwitchAt = now.AddSeconds(_switchIntervalSeconds);
+        }
+        RefreshVisibleMetric();
+    }
+
+    private void RefreshVisibleMetric()
+    {
+        if (_disposed) return;
+        if (_showMemory)
+        {
+            MetricNameText.Text = "RAM 사용률";
+            try
+            {
+                MemoryReading memory = ReadMemory();
+                MetricValueText.Text = $"{memory.UsedPercent:0}%";
+                StatusText.Text = $"{memory.UsedGiB:0.0} / {memory.TotalGiB:0.0} GB";
+                ToolTip = $"전체 RAM: {memory.TotalGiB:0.0} GB\n사용 중: {memory.UsedGiB:0.0} GB ({memory.UsedPercent:0}%)\n사용 가능: {memory.AvailableGiB:0.0} GB\n{DateTime.Now:HH:mm:ss} 갱신";
+            }
+            catch (Exception ex)
+            {
+                MetricValueText.Text = "-- %";
+                StatusText.Text = "측정 불가";
+                ToolTip = "RAM 사용량을 읽지 못했습니다.\n" + ex.Message;
+            }
+            return;
+        }
+
+        MetricNameText.Text = "CPU 온도";
+        MetricValueText.Text = _cpuDisplay.Value;
+        StatusText.Text = _cpuDisplay.Status;
+        ToolTip = _cpuDisplay.ToolTip;
+    }
+
+    private static MemoryReading ReadMemory()
+    {
+        var status = new MemoryStatusEx { Length = (uint)Marshal.SizeOf<MemoryStatusEx>() };
+        if (!GlobalMemoryStatusEx(ref status))
+            throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+        const double gib = 1024d * 1024d * 1024d;
+        double total = status.TotalPhysical / gib;
+        double available = status.AvailablePhysical / gib;
+        return new MemoryReading(status.MemoryLoad, total - available, total, available);
     }
 
     private static void LogSensorState(string cpuName, string sensorDetails)
@@ -150,8 +222,29 @@ public partial class CpuTemperaturePane : UserControl, IDisposable
     public void Dispose()
     {
         _disposed = true;
+        _displayTimer.Stop();
         _stop.Cancel();
     }
 
     private sealed record CpuReading(string Name, float Value);
+    private sealed record MetricDisplay(string Value, string Status, string ToolTip);
+    private sealed record MemoryReading(double UsedPercent, double UsedGiB, double TotalGiB, double AvailableGiB);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MemoryStatusEx
+    {
+        public uint Length;
+        public uint MemoryLoad;
+        public ulong TotalPhysical;
+        public ulong AvailablePhysical;
+        public ulong TotalPageFile;
+        public ulong AvailablePageFile;
+        public ulong TotalVirtual;
+        public ulong AvailableVirtual;
+        public ulong AvailableExtendedVirtual;
+    }
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GlobalMemoryStatusEx(ref MemoryStatusEx buffer);
 }

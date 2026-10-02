@@ -29,6 +29,8 @@ public partial class GeosangHelperPane : System.Windows.Controls.UserControl, ID
     private Window? HostWindow => Window.GetWindow(this);
     public ObservableCollection<ImageShortcutItem> ImageShortcuts => state.ImageShortcuts;
     public ObservableCollection<ProgramShortcutItem> ProgramShortcuts => state.ProgramShortcuts;
+    public int HardwareMetricSwitchSeconds => state.HardwareMetricSwitchSeconds;
+    public event Action<int>? HardwareMetricSwitchIntervalChanged;
 
     public GeosangHelperPane()
     {
@@ -48,6 +50,8 @@ public partial class GeosangHelperPane : System.Windows.Controls.UserControl, ID
         if (FontFamilyCombo.SelectedIndex < 0 && FontFamilyCombo.Items.Count > 0) FontFamilyCombo.SelectedIndex = 0;
         FontSizeSlider.Value = state.FontSize;
         PanelOpacitySlider.Value = state.PanelOpacity;
+        HardwareMetricIntervalSlider.Value = state.HardwareMetricSwitchSeconds;
+        HardwareMetricIntervalValue.Text = $"{state.HardwareMetricSwitchSeconds}초";
         ApplyAppearance();
         try { StartupBox.IsChecked = StartupService.Enabled; } catch (Exception ex) { Status.Text = ex.Message; }
         OverviewTimerList.ItemsSource = TimerSettingsList.ItemsSource = state.Timers;
@@ -146,6 +150,15 @@ public partial class GeosangHelperPane : System.Windows.Controls.UserControl, ID
         if (!ready) return;
         state.PanelOpacity = PanelOpacitySlider.Value;
         ApplyPanelAppearance(); Save();
+    }
+    private void HardwareMetricIntervalChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        int seconds = (int)Math.Round(HardwareMetricIntervalSlider.Value);
+        HardwareMetricIntervalValue.Text = $"{seconds}초";
+        if (!ready) return;
+        state.HardwareMetricSwitchSeconds = seconds;
+        HardwareMetricSwitchIntervalChanged?.Invoke(seconds);
+        Save();
     }
     private void ChooseFontColor(object sender, RoutedEventArgs e)
     {

@@ -139,6 +139,9 @@
       <DockPanel Margin="3,12,3,4"><TextBlock Text="패널 투명도" FontWeight="Bold"/><TextBlock x:Name="PanelOpacityValue" DockPanel.Dock="Right" FontWeight="Bold"/></DockPanel>
       <Slider x:Name="PanelOpacitySlider" Minimum="0" Maximum="0.9" TickFrequency="0.05" IsSnapToTickEnabled="True" ValueChanged="PanelOpacityChanged"/>
       <TextBlock Text="0%에 가까울수록 배경이 선명하게 보입니다." Foreground="{DynamicResource MutedTextBrush}" FontSize="{DynamicResource SmallFontSize}" Margin="3,2,3,8"/>
+      <DockPanel Margin="3,12,3,4"><TextBlock Text="CPU 온도·RAM 전환 간격" FontWeight="Bold"/><TextBlock x:Name="HardwareMetricIntervalValue" DockPanel.Dock="Right" FontWeight="Bold"/></DockPanel>
+      <Slider x:Name="HardwareMetricIntervalSlider" Minimum="2" Maximum="60" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="HardwareMetricIntervalChanged"/>
+      <TextBlock Text="오른쪽 아래 표시가 CPU 온도와 RAM 사용률 사이에서 바뀌는 간격입니다." Foreground="{DynamicResource MutedTextBrush}" FontSize="{DynamicResource SmallFontSize}" TextWrapping="Wrap" Margin="3,2,3,8"/>
       <Separator Margin="0,10"/>
       <DockPanel Margin="3,0,3,7">
        <Button DockPanel.Dock="Right" Content="+ 프로그램" Click="AddProgramShortcut"/>

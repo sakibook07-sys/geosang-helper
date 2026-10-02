@@ -100,7 +100,7 @@ public class ProgramShortcutItem
 }
 public class AppState
 {
-    public int Version { get; set; } = 5;
+    public int Version { get; set; } = 6;
     public double Left { get; set; } = 80;
     public double Top { get; set; } = 80;
     public double Width { get; set; } = 420;
@@ -113,6 +113,7 @@ public class AppState
     public string FontFamily { get; set; } = "맑은 고딕";
     public double FontSize { get; set; } = 14;
     public double PanelOpacity { get; set; } = 0.28;
+    public int HardwareMetricSwitchSeconds { get; set; } = 5;
     public bool GameMonitoringEnabled { get; set; } = true;
     public string BattleLabel { get; set; } = "낭장의혼 · 칠숙의혼";
     public ObservableCollection<MissionTimer> Timers { get; set; } = new();

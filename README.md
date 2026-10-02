@@ -1,8 +1,8 @@
 # 거상 통합 도우미
 
-Windows 10/11용 개인 도우미입니다. C# .NET 8과 WPF로 만들었으며, 일반 인터넷 탭, 거타 육의전 원본 페이지, 주막 임무 타이머, 체크리스트, CPU 온도, 계산기, 사용자 이미지 버튼과 외부 프로그램 도킹을 한 창에서 사용합니다.
+Windows 10/11용 개인 도우미입니다. C# .NET 8과 WPF로 만들었으며, 일반 인터넷 탭, 거타 육의전 원본 페이지, 주막 임무 타이머, 체크리스트, CPU 온도·RAM 사용률, 계산기, 사용자 이미지 버튼과 외부 프로그램 도킹을 한 창에서 사용합니다.
 
-환경설정은 하단 왼쪽 제목줄의 `환경설정` 버튼으로 별도 창에서 엽니다. 배경·글자 크기·색상·투명도와 함께 Windows에 설치된 글꼴을 선택할 수 있습니다. 글꼴 목록은 한글 이름을 우선 표시하고 각 글꼴의 `가나다 Aa 123` 미리보기를 함께 보여줍니다.
+환경설정은 하단 왼쪽 제목줄의 `환경설정` 버튼으로 별도 창에서 엽니다. 배경·글자 크기·색상·투명도, CPU 온도와 RAM 사용률의 전환 간격을 바꾸고 Windows에 설치된 글꼴을 선택할 수 있습니다. 글꼴 목록은 한글 이름을 우선 표시하고 각 글꼴의 `가나다 Aa 123` 미리보기를 함께 보여줍니다.
 
 ## 상단에 다른 프로그램 넣기
 
@@ -48,7 +48,7 @@ dotnet publish .\GeosangHub.csproj -c Release -r win-x64 --self-contained true -
 - `MainWindow.xaml` / `.xaml.cs`: 통합 화면과 브라우저 탭
 - `GeosangHelperPane.xaml` / `.xaml.cs`: 주막 타이머, 체크리스트, 환경설정
 - `CalculatorPane.xaml` / `.xaml.cs`: 계산기
-- `CpuTemperaturePane.xaml` / `.xaml.cs`: CPU 온도 센서 표시
+- `CpuTemperaturePane.xaml` / `.xaml.cs`: CPU 온도와 RAM 사용률 교대 표시
 - `ImageShortcutDialog.cs` / `ImagePreviewWindow.cs`: 이미지 버튼 등록과 보기
 - `HubSettings.cs`, `Models.cs`, `Storage.cs`: 로컬 설정 저장
 

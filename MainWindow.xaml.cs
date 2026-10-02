@@ -52,6 +52,8 @@ public partial class MainWindow : Window
         ExternalProgramTabItems.ItemsSource = _externalProgramTabs;
         ImageShortcutButtons.ItemsSource = HelperPane.ImageShortcuts;
         ProgramShortcutButtons.ItemsSource = HelperPane.ProgramShortcuts;
+        CpuTemperature.SetSwitchInterval(HelperPane.HardwareMetricSwitchSeconds);
+        HelperPane.HardwareMetricSwitchIntervalChanged += CpuTemperature.SetSwitchInterval;
         ApplySettings();
         Loaded += MainWindow_Loaded;
         Closing += MainWindow_Closing;
