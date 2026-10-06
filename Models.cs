@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace GeosangHelper;
 public class MissionTimer : INotifyPropertyChanged
 {
-    public string Name { get; set; } = "주막 임무";
+    public string Name { get; set; } = "타이머";
     // UTC Unix milliseconds, never a decrementing counter.
     public long EndsAtUnixMs { get; set; }
     public long DurationSeconds { get; set; } = 86400;

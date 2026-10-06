@@ -1,0 +1,25 @@
+<UserControl x:Class="GeosangHub.ProductionFacilityCalculatorPane"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             MinWidth="180">
+    <Border Background="#F4EFEB" BorderBrush="#D5C8BE" BorderThickness="1" CornerRadius="7" Padding="9">
+        <StackPanel>
+            <TextBlock Text="생산시설 작업량 계산" FontSize="16" FontWeight="Bold" Foreground="#302925"/>
+            <TextBlock Text="임금" Foreground="#806B60" Margin="0,9,0,3"/>
+            <ComboBox x:Name="WageCombo" DisplayMemberPath="Name" SelectionChanged="InputChanged" Padding="4"/>
+            <TextBlock Text="총 작업량" Foreground="#806B60" Margin="0,9,0,3"/>
+            <TextBox x:Name="WorkloadInput" Text="10000" MaxLength="18" TextChanged="InputChanged" Padding="5"/>
+            <Border Background="White" BorderBrush="#CFC2B9" BorderThickness="1" CornerRadius="5" Padding="8" Margin="0,10,0,0">
+                <StackPanel>
+                    <TextBlock x:Name="CapacityText" Text="게임 하루 작업량: -" Foreground="#806B60" TextWrapping="Wrap"/>
+                    <TextBlock Text="게임시간" Foreground="#806B60" FontSize="11" Margin="0,8,0,0"/>
+                    <TextBlock x:Name="GameTimeText" Text="-" FontWeight="Bold" TextWrapping="Wrap"/>
+                    <TextBlock Text="현실시간" Foreground="#806B60" FontSize="11" Margin="0,8,0,0"/>
+                    <TextBlock x:Name="RealTimeText" Text="-" FontSize="18" FontWeight="Bold" Foreground="#8B3F2F" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+            <Button x:Name="StartTimerButton" Content="타이머에 추가하고 바로 시작" Click="StartTimer_Click" Margin="0,9,0,0" Padding="6"/>
+            <TextBlock x:Name="StatusText" Foreground="#806B60" TextWrapping="Wrap" Margin="0,6,0,0"/>
+        </StackPanel>
+    </Border>
+</UserControl>

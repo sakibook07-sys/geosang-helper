@@ -1,8 +1,10 @@
 # 거상 통합 도우미
 
-Windows 10/11용 개인 도우미입니다. C# .NET 8과 WPF로 만들었으며, 일반 인터넷 탭, 거타 육의전 원본 페이지, 주막 임무 타이머, 체크리스트, CPU 온도·RAM 사용률, 계산기, 사용자 이미지 버튼과 외부 프로그램 도킹을 한 창에서 사용합니다.
+Windows 10/11용 개인 도우미입니다. C# .NET 8과 WPF로 만들었으며, 일반 인터넷 탭, 거타 육의전 원본 페이지, 타이머, 체크리스트, CPU 온도·RAM 사용률, 계산기, 사용자 이미지 버튼과 외부 프로그램 도킹을 한 창에서 사용합니다.
 
 환경설정은 하단 왼쪽 제목줄의 `환경설정` 버튼으로 별도 창에서 엽니다. 배경·글자 크기·색상·투명도, CPU 온도와 RAM 사용률의 전환 간격을 바꾸고 Windows에 설치된 글꼴을 선택할 수 있습니다. 글꼴 목록은 한글 이름을 우선 표시하고 각 글꼴의 `가나다 Aa 123` 미리보기를 함께 보여줍니다.
+
+오른쪽 도구 영역에는 일반·지전비율·생산시설 계산기 탭이 있습니다. 일반 계산기는 천 단위 쉼표를 표시하고, 지전비율 계산기는 아이템 가격의 한글 단위와 예상 현금가를 계산합니다. 생산시설 계산 결과는 타이머 목록에 추가하면서 바로 시작할 수 있습니다.
 
 ## 상단에 다른 프로그램 넣기
 
@@ -37,7 +39,7 @@ dotnet publish .\GeosangHub.csproj -c Release -r win-x64 --self-contained true -
 ## 저장 데이터
 
 - 통합 창 배치, 인터넷 탭·북마크: `%LOCALAPPDATA%\GeosangIntegratedHub\layout.json`
-- 주막 임무, 체크리스트, 이미지 버튼 설정: `%LOCALAPPDATA%\GeosangHelper\state.json`
+- 타이머, 체크리스트, 이미지 버튼 설정: `%LOCALAPPDATA%\GeosangHelper\state.json`
 - 상단 프로그램 실행 버튼 설정: `%LOCALAPPDATA%\GeosangHelper\state.json`
 - 등록한 이미지의 사본: `%LOCALAPPDATA%\GeosangHelper\shortcut-images`
 
@@ -46,8 +48,10 @@ dotnet publish .\GeosangHub.csproj -c Release -r win-x64 --self-contained true -
 ## 프로젝트 파일
 
 - `MainWindow.xaml` / `.xaml.cs`: 통합 화면과 브라우저 탭
-- `GeosangHelperPane.xaml` / `.xaml.cs`: 주막 타이머, 체크리스트, 환경설정
-- `CalculatorPane.xaml` / `.xaml.cs`: 계산기
+- `GeosangHelperPane.xaml` / `.xaml.cs`: 타이머, 체크리스트, 환경설정
+- `CalculatorPane.xaml` / `.xaml.cs`: 일반 계산기
+- `JeonRateCalculatorPane.xaml` / `.xaml.cs`: 지전비율 계산기
+- `ProductionFacilityCalculatorPane.xaml` / `.xaml.cs`: 생산시설 계산과 타이머 연결
 - `CpuTemperaturePane.xaml` / `.xaml.cs`: CPU 온도와 RAM 사용률 교대 표시
 - `ImageShortcutDialog.cs` / `ImagePreviewWindow.cs`: 이미지 버튼 등록과 보기
 - `HubSettings.cs`, `Models.cs`, `Storage.cs`: 로컬 설정 저장

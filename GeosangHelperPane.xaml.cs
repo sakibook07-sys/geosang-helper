@@ -300,6 +300,22 @@ public partial class GeosangHelperPane : System.Windows.Controls.UserControl, ID
         if (HostWindow != null) dialog.Owner = HostWindow;
         if (dialog.ShowDialog() == true) { state.Timers.Add(new() { Name = dialog.TimerName, DurationSeconds = dialog.DurationSeconds }); UpdateEmptyMessages(); Save(); }
     }
+    public bool AddAndStartTimer(string name, long durationSeconds)
+    {
+        if (string.IsNullOrWhiteSpace(name) || durationSeconds is < 1 or > 31_536_000) return false;
+        var timer = new MissionTimer { Name = name.Trim(), DurationSeconds = durationSeconds };
+        timer.Start();
+        state.Timers.Add(timer);
+        UpdateEmptyMessages();
+        if (Save())
+        {
+            MainTabs.SelectedIndex = 0;
+            return true;
+        }
+        state.Timers.Remove(timer);
+        UpdateEmptyMessages();
+        return false;
+    }
     private static MissionTimer TimerFrom(object sender) => (MissionTimer)((FrameworkElement)sender).DataContext;
     private void EditTimer(object sender, RoutedEventArgs e)
     {

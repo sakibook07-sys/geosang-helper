@@ -15,10 +15,10 @@ public class TimerDialog : Window
     public long DurationSeconds { get; private set; }
     public TimerDialog(MissionTimer? timer)
     {
-        Title = timer == null ? "주막 타이머 추가" : "타이머 수정";
+        Title = timer == null ? "타이머 추가" : "타이머 수정";
         Width = 340; SizeToContent = SizeToContent.Height; ResizeMode = ResizeMode.NoResize; WindowStartupLocation = WindowStartupLocation.CenterOwner; ShowInTaskbar = false;
         var panel = new StackPanel { Margin = new Thickness(16) }; Content = panel;
-        panel.Children.Add(new TextBlock { Text = "임무 이름" }); panel.Children.Add(name); name.Text = timer?.Name ?? "";
+        panel.Children.Add(new TextBlock { Text = "타이머 이름" }); panel.Children.Add(name); name.Text = timer?.Name ?? "";
         long totalSeconds = Math.Max(60, timer?.DurationSeconds ?? 86400);
         hours.Text = (totalSeconds / 3600).ToString();
         minutes.Text = (totalSeconds % 3600 / 60).ToString();
@@ -31,7 +31,7 @@ public class TimerDialog : Window
         save.Click += (_, _) =>
         {
             TimerName = name.Text.Trim();
-            if (TimerName.Length == 0) { MessageBox.Show(this, "임무 이름을 입력해주세요."); return; }
+            if (TimerName.Length == 0) { MessageBox.Show(this, "타이머 이름을 입력해주세요."); return; }
             if (!int.TryParse(hours.Text, out int h) || !int.TryParse(minutes.Text, out int m) || h < 0 || h > 8760 || m < 0 || m > 59 || h + m == 0 || h == 8760 && m > 0)
             { MessageBox.Show(this, "시간은 0~8760, 분은 0~59 정수로 입력해주세요. 최소 1분입니다."); return; }
             DurationSeconds = checked((long)h * 3600 + (long)m * 60);

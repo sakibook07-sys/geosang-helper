@@ -61,7 +61,7 @@ public static class Storage
             || state.HardwareMetricSwitchSeconds < 2 || state.HardwareMetricSwitchSeconds > 60
             || !Regex.IsMatch(state.FontColor ?? "", "^#[0-9A-Fa-f]{6}$")
             || string.IsNullOrWhiteSpace(state.FontFamily) || state.FontFamily.Length > 200
-            || state.Timers.Any(t => t == null || string.IsNullOrWhiteSpace(t.Name) || t.EndsAtUnixMs < 0 || t.EndsAtUnixMs > 253402300799999 || t.DurationSeconds < 60 || t.DurationSeconds > 31536000)
+            || state.Timers.Any(t => t == null || string.IsNullOrWhiteSpace(t.Name) || t.EndsAtUnixMs < 0 || t.EndsAtUnixMs > 253402300799999 || t.DurationSeconds < 1 || t.DurationSeconds > 31536000)
             || state.Checklist.Any(c => c == null || string.IsNullOrWhiteSpace(c.Name))
             || state.Battles == null || state.MarketListings == null || string.IsNullOrWhiteSpace(state.BattleLabel)
             || state.Battles.Any(b => b == null || b.StartedAtUnixMs <= 0 || b.EndedAtUnixMs < b.StartedAtUnixMs)

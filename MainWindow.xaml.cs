@@ -52,6 +52,7 @@ public partial class MainWindow : Window
         ExternalProgramTabItems.ItemsSource = _externalProgramTabs;
         ImageShortcutButtons.ItemsSource = HelperPane.ImageShortcuts;
         ProgramShortcutButtons.ItemsSource = HelperPane.ProgramShortcuts;
+        ProductionCalculator.TimerStartRequested += ProductionTimerStartRequested;
         CpuTemperature.SetSwitchInterval(HelperPane.HardwareMetricSwitchSeconds);
         HelperPane.HardwareMetricSwitchIntervalChanged += CpuTemperature.SetSwitchInterval;
         ApplySettings();
@@ -687,6 +688,8 @@ public partial class MainWindow : Window
 
     private void HelperViewport_SizeChanged(object sender, SizeChangedEventArgs e) => ApplyHelperZoom();
     private void HelperSettings_Click(object sender, RoutedEventArgs e) => HelperPane.OpenSettingsWindow();
+    private void ProductionTimerStartRequested(object? sender, ProductionTimerEventArgs e) =>
+        e.Added = HelperPane.AddAndStartTimer(e.Name, e.DurationSeconds);
     private void BrowserZoomOut_Click(object sender, RoutedEventArgs e) => SetBrowserZoom(_settings.BrowserZoom - 0.1);
     private void BrowserZoomIn_Click(object sender, RoutedEventArgs e) => SetBrowserZoom(_settings.BrowserZoom + 0.1);
     private void HelperZoomOut_Click(object sender, RoutedEventArgs e) => SetHelperZoom(_settings.HelperZoom - 0.1);

@@ -151,7 +151,7 @@
                         <Button DockPanel.Dock="Right" Content="＋" Click="HelperZoomIn_Click"/>
                         <TextBlock x:Name="HelperZoomText" DockPanel.Dock="Right" Width="54" TextAlignment="Center" VerticalAlignment="Center" Foreground="White" FontWeight="Bold"/>
                         <Button DockPanel.Dock="Right" Content="－" Click="HelperZoomOut_Click"/>
-                        <TextBlock Text="거상 도우미 · 주막 타이머와 체크리스트" Foreground="White" FontSize="17" FontWeight="Bold" Margin="12,9"/>
+                        <TextBlock Text="거상 도우미 · 타이머와 체크리스트" Foreground="White" FontSize="17" FontWeight="Bold" Margin="12,9"/>
                     </DockPanel>
                     <Grid x:Name="HelperViewport" Grid.Row="1" ClipToBounds="True" SizeChanged="HelperViewport_SizeChanged">
                         <helper:GeosangHelperPane x:Name="HelperPane" HorizontalAlignment="Left" VerticalAlignment="Top"/>
@@ -213,7 +213,17 @@
                     </Border>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                         <StackPanel x:Name="RightContent" Margin="5">
-                            <local:CalculatorPane x:Name="Calculator" HorizontalAlignment="Stretch"/>
+                            <TabControl x:Name="CalculatorTabs" Background="Transparent" BorderBrush="#BCA698">
+                                <TabItem Header="일반">
+                                    <local:CalculatorPane x:Name="Calculator" HorizontalAlignment="Stretch"/>
+                                </TabItem>
+                                <TabItem Header="지전비율">
+                                    <local:JeonRateCalculatorPane x:Name="JeonRateCalculator" HorizontalAlignment="Stretch"/>
+                                </TabItem>
+                                <TabItem Header="생산시설">
+                                    <local:ProductionFacilityCalculatorPane x:Name="ProductionCalculator" HorizontalAlignment="Stretch"/>
+                                </TabItem>
+                            </TabControl>
                             <TextBlock Text="이미지 바로가기" Foreground="#5C4338" FontWeight="Bold" Margin="4,15,4,6"/>
                             <ItemsControl x:Name="ImageShortcutButtons">
                                 <ItemsControl.ItemTemplate>

@@ -86,8 +86,8 @@ public partial class CalculatorPane : UserControl
                 break;
         }
 
-        DisplayText.Text = _entry;
-        DisplayText.ToolTip = _entry;
+        DisplayText.Text = FormatEntryForDisplay(_entry);
+        DisplayText.ToolTip = DisplayText.Text;
     }
 
     private void SetOperation(string operation)
@@ -101,7 +101,7 @@ public partial class CalculatorPane : UserControl
         _stored = value;
         _operation = operation;
         _startNewEntry = true;
-        ExpressionText.Text = $"{Format(value)} {Symbol(operation)}";
+        ExpressionText.Text = $"{FormatNumber(value)} {Symbol(operation)}";
     }
 
     private void EqualsPressed()
@@ -109,7 +109,7 @@ public partial class CalculatorPane : UserControl
         if (_operation == null || _stored == null) return;
         if (!ReadEntry(out var value)) return;
         if (!TryCalculate(_stored.Value, value, _operation, out var result)) return;
-        ExpressionText.Text = $"{Format(_stored.Value)} {Symbol(_operation)} {Format(value)} =";
+        ExpressionText.Text = $"{FormatNumber(_stored.Value)} {Symbol(_operation)} {FormatNumber(value)} =";
         _entry = Format(result);
         _stored = null;
         _operation = null;
@@ -119,6 +119,19 @@ public partial class CalculatorPane : UserControl
     private static string Symbol(string operation) => operation switch { "*" => "×", "/" => "÷", "-" => "−", _ => operation };
 
     private static string Format(decimal value) => value.ToString("G29", CultureInfo.InvariantCulture);
+
+    private static string FormatNumber(decimal value) =>
+        value.ToString("#,0.############################", CultureInfo.GetCultureInfo("ko-KR"));
+
+    private static string FormatEntryForDisplay(string entry)
+    {
+        if (entry == "오류") return entry;
+        int decimalPoint = entry.IndexOf('.');
+        string wholeText = decimalPoint >= 0 ? entry[..decimalPoint] : entry;
+        string fraction = decimalPoint >= 0 ? entry[decimalPoint..] : string.Empty;
+        if (!decimal.TryParse(wholeText, NumberStyles.Integer, CultureInfo.InvariantCulture, out decimal whole)) return entry;
+        return whole.ToString("#,0", CultureInfo.GetCultureInfo("ko-KR")) + fraction;
+    }
 
     private bool ReadEntry(out decimal value)
     {
