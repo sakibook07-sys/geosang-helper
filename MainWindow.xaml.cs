@@ -52,8 +52,8 @@ public partial class MainWindow : Window
         ExternalProgramTabItems.ItemsSource = _externalProgramTabs;
         ImageShortcutButtons.ItemsSource = HelperPane.ImageShortcuts;
         ProgramShortcutButtons.ItemsSource = HelperPane.ProgramShortcuts;
-        Calculator.ConfigureJeonSettings(_settings.JeonRate, _settings.JeonUnitMultiplier);
-        Calculator.JeonSettingsChanged += Calculator_JeonSettingsChanged;
+        JeonExchange.ConfigureRate(_settings.JeonRate);
+        JeonExchange.RateChanged += JeonExchange_RateChanged;
         ProductionCalculator.TimerStartRequested += ProductionTimerStartRequested;
         CpuTemperature.SetSwitchInterval(HelperPane.HardwareMetricSwitchSeconds);
         HelperPane.HardwareMetricSwitchIntervalChanged += CpuTemperature.SetSwitchInterval;
@@ -690,11 +690,7 @@ public partial class MainWindow : Window
 
     private void HelperViewport_SizeChanged(object sender, SizeChangedEventArgs e) => ApplyHelperZoom();
     private void HelperSettings_Click(object sender, RoutedEventArgs e) => HelperPane.OpenSettingsWindow();
-    private void Calculator_JeonSettingsChanged(object? sender, JeonSettingsChangedEventArgs e)
-    {
-        _settings.JeonRate = e.Rate;
-        _settings.JeonUnitMultiplier = e.UnitMultiplier;
-    }
+    private void JeonExchange_RateChanged(object? sender, decimal rate) => _settings.JeonRate = rate;
     private void ProductionTimerStartRequested(object? sender, ProductionTimerEventArgs e) =>
         e.Added = HelperPane.AddAndStartTimer(e.Name, e.DurationSeconds);
     private void BrowserZoomOut_Click(object sender, RoutedEventArgs e) => SetBrowserZoom(_settings.BrowserZoom - 0.1);

@@ -217,6 +217,9 @@
                                 <TabItem Header="계산기">
                                     <local:CalculatorPane x:Name="Calculator" HorizontalAlignment="Stretch"/>
                                 </TabItem>
+                                <TabItem Header="지전 환산">
+                                    <local:JeonExchangePane x:Name="JeonExchange" HorizontalAlignment="Stretch"/>
+                                </TabItem>
                                 <TabItem Header="생산시설">
                                     <local:ProductionFacilityCalculatorPane x:Name="ProductionCalculator" HorizontalAlignment="Stretch"/>
                                 </TabItem>

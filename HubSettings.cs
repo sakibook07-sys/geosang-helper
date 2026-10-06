@@ -29,7 +29,6 @@ public sealed class HubSettings
     public double MarketZoom { get; set; } = 1.0;
     public double EmptyZoom { get; set; } = 1.0;
     public decimal JeonRate { get; set; } = 3000m;
-    public long JeonUnitMultiplier { get; set; } = 100_000_000;
     public List<BookmarkItem> Bookmarks { get; set; } = new();
 
     public static string Folder => Environment.GetEnvironmentVariable("GEOSANG_HUB_DATA")

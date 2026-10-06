@@ -10,36 +10,12 @@ namespace GeosangHub;
 
 public partial class CalculatorPane : UserControl
 {
-    private static readonly JeonUnit[] JeonUnits =
-    [
-        new("천", 1_000), new("만", 10_000), new("십만", 100_000),
-        new("백만", 1_000_000), new("천만", 10_000_000),
-        new("억", 100_000_000), new("십억", 1_000_000_000)
-    ];
     private string _entry = "0";
     private decimal? _stored;
     private string? _operation;
     private bool _startNewEntry;
-    private bool _jeonReady;
-    public event EventHandler<JeonSettingsChangedEventArgs>? JeonSettingsChanged;
 
-    public CalculatorPane()
-    {
-        InitializeComponent();
-        JeonUnitCombo.ItemsSource = JeonUnits;
-        JeonUnitCombo.SelectedIndex = 5;
-        _jeonReady = true;
-        UpdateJeonConversion();
-    }
-
-    public void ConfigureJeonSettings(decimal rate, long unitMultiplier)
-    {
-        _jeonReady = false;
-        JeonRateInput.Text = (rate > 0 ? rate : 3000m).ToString("G29", CultureInfo.InvariantCulture);
-        JeonUnitCombo.SelectedItem = JeonUnits.FirstOrDefault(x => x.Multiplier == unitMultiplier) ?? JeonUnits[5];
-        _jeonReady = true;
-        UpdateJeonConversion();
-    }
+    public CalculatorPane() => InitializeComponent();
 
     private void Key_Click(object sender, RoutedEventArgs e)
     {
@@ -48,7 +24,6 @@ public partial class CalculatorPane : UserControl
 
     private void Calculator_PreviewKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.OriginalSource is System.Windows.Controls.TextBox or System.Windows.Controls.ComboBox) return;
         string? key = e.Key switch
         {
             >= Key.D0 and <= Key.D9 when Keyboard.Modifiers == ModifierKeys.None => ((int)e.Key - (int)Key.D0).ToString(),
@@ -113,58 +88,7 @@ public partial class CalculatorPane : UserControl
 
         DisplayText.Text = FormatEntryForDisplay(_entry);
         DisplayText.ToolTip = DisplayText.Text;
-        UpdateJeonConversion();
     }
-
-    private void JeonSettingChanged(object sender, EventArgs e)
-    {
-        if (!_jeonReady) return;
-        UpdateJeonConversion();
-        if (TryReadJeonRate(out decimal rate) && JeonUnitCombo.SelectedItem is JeonUnit unit)
-            JeonSettingsChanged?.Invoke(this, new JeonSettingsChangedEventArgs(rate, unit.Multiplier));
-    }
-
-    private void UpdateJeonConversion()
-    {
-        JeonValidationText.Text = string.Empty;
-        if (!TryReadJeonRate(out decimal rate))
-        {
-            JeonAmountText.Text = JeonCashText.Text = "-";
-            JeonValidationText.Text = "1억당 현금가를 0보다 큰 숫자로 입력해주세요.";
-            return;
-        }
-        if (JeonUnitCombo.SelectedItem is not JeonUnit unit || !ReadEntryWithoutError(out decimal number) || number < 0)
-        {
-            JeonAmountText.Text = JeonCashText.Text = "-";
-            JeonValidationText.Text = "계산기에 0 이상의 금액을 입력해주세요.";
-            return;
-        }
-        decimal rawPrice;
-        try { rawPrice = number * unit.Multiplier; }
-        catch (OverflowException) { ShowJeonTooLarge(); return; }
-        if (rawPrice > long.MaxValue) { ShowJeonTooLarge(); return; }
-        long itemPrice = (long)decimal.Round(rawPrice, 0, MidpointRounding.AwayFromZero);
-        decimal cashPrice = itemPrice / 100_000_000m * rate;
-        JeonAmountText.Text = FormatKoreanPrice(itemPrice) + $"  ({itemPrice:N0}원)";
-        JeonCashText.Text = cashPrice < 1m && cashPrice > 0m
-            ? $"약 {cashPrice:N2}원"
-            : $"약 {decimal.Round(cashPrice, 0, MidpointRounding.AwayFromZero):N0}원";
-    }
-
-    private void ShowJeonTooLarge()
-    {
-        JeonAmountText.Text = JeonCashText.Text = "-";
-        JeonValidationText.Text = "환산할 금액이 너무 큽니다.";
-    }
-
-    private bool TryReadJeonRate(out decimal rate)
-    {
-        string text = JeonRateInput.Text.Replace(",", "").Trim();
-        return decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out rate) && rate > 0;
-    }
-
-    private bool ReadEntryWithoutError(out decimal value) =>
-        decimal.TryParse(_entry, NumberStyles.Number, CultureInfo.InvariantCulture, out value);
 
     private void SetOperation(string operation)
     {
@@ -256,32 +180,4 @@ public partial class CalculatorPane : UserControl
         ExpressionText.Text = string.Empty;
     }
 
-    private static string FormatKoreanPrice(long amount)
-    {
-        if (amount == 0) return "0원";
-        var parts = new List<string>();
-        long eok = amount / 100_000_000;
-        if (eok > 0) parts.Add($"{eok:N0}억");
-        AddKoreanPart(parts, amount, 10_000_000, "천만");
-        AddKoreanPart(parts, amount, 1_000_000, "백만");
-        AddKoreanPart(parts, amount, 100_000, "십만");
-        AddKoreanPart(parts, amount, 10_000, "만");
-        AddKoreanPart(parts, amount, 1_000, "천");
-        AddKoreanPart(parts, amount, 100, "백");
-        AddKoreanPart(parts, amount, 10, "십");
-        long won = amount % 10;
-        if (won > 0) parts.Add($"{won}원");
-        else parts[^1] += "원";
-        return string.Join(" ", parts);
-    }
-
-    private static void AddKoreanPart(List<string> parts, long amount, long unit, string name)
-    {
-        long value = amount / unit % 10;
-        if (value > 0) parts.Add($"{value}{name}");
-    }
-
-    private sealed record JeonUnit(string Name, long Multiplier);
 }
-
-public sealed record JeonSettingsChangedEventArgs(decimal Rate, long UnitMultiplier);
