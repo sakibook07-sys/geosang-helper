@@ -30,6 +30,7 @@ public sealed class HubSettings
     public double EmptyZoom { get; set; } = 1.0;
     public decimal JeonRate { get; set; } = 3000m;
     public decimal JeonEokPerTenThousand { get; set; }
+    public string MemoText { get; set; } = string.Empty;
     public List<BookmarkItem> Bookmarks { get; set; } = new();
 
     public static string Folder => Environment.GetEnvironmentVariable("GEOSANG_HUB_DATA")

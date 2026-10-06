@@ -1,0 +1,26 @@
+<UserControl x:Class="GeosangHub.MemoPane"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             MinWidth="180" MaxWidth="420">
+    <Border Background="#F4EFEB" BorderBrush="#D5C8BE" BorderThickness="1" CornerRadius="7" Padding="9">
+        <Grid>
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="260"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+            <DockPanel Margin="0,0,0,7">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Content="전체 복사" Click="CopyAll_Click" Padding="6,2" Margin="2,0"/>
+                    <Button Content="내용 지우기" Click="Clear_Click" Padding="6,2" Margin="2,0"/>
+                </StackPanel>
+                <TextBlock Text="간단 메모" FontSize="16" FontWeight="Bold" Foreground="#302925" VerticalAlignment="Center"/>
+            </DockPanel>
+            <TextBox x:Name="MemoTextBox" Grid.Row="1" AcceptsReturn="True" AcceptsTab="True"
+                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                     TextWrapping="Wrap" SpellCheck.IsEnabled="True" MaxLength="100000"
+                     Padding="8" FontSize="14" TextChanged="MemoTextBox_TextChanged"
+                     ToolTip="입력을 멈추면 자동으로 저장됩니다."/>
+            <DockPanel Grid.Row="2" Margin="2,6,2,0">
+                <TextBlock DockPanel.Dock="Right" Text="최대 100,000자" Foreground="#806B60" FontSize="10"/>
+                <TextBlock x:Name="SaveStatusText" Text="입력을 멈추면 자동 저장됩니다." Foreground="#806B60" FontSize="10" TextTrimming="CharacterEllipsis"/>
+            </DockPanel>
+        </Grid>
+    </Border>
+</UserControl>

@@ -31,6 +31,7 @@ public partial class MainWindow : Window
     private bool _changingProgramTab;
     private readonly ExternalWindowDock _externalWindowDock;
     private readonly DispatcherTimer _externalProgramTimer = new() { Interval = TimeSpan.FromSeconds(1) };
+    private readonly DispatcherTimer _memoSaveTimer = new() { Interval = TimeSpan.FromMilliseconds(800) };
 
     private static readonly ServerOption[] Servers =
     {
@@ -56,6 +57,9 @@ public partial class MainWindow : Window
             _settings.JeonEokPerTenThousand = _settings.JeonRate > 0 ? 10_000m / _settings.JeonRate : 10_000m / 3000m;
         JeonExchange.ConfigureRatio(_settings.JeonEokPerTenThousand);
         JeonExchange.RatioChanged += JeonExchange_RatioChanged;
+        Memo.SetText(_settings.MemoText);
+        Memo.MemoChanged += Memo_MemoChanged;
+        _memoSaveTimer.Tick += (_, _) => SaveMemoNow();
         ProductionCalculator.TimerStartRequested += ProductionTimerStartRequested;
         CpuTemperature.SetSwitchInterval(HelperPane.HardwareMetricSwitchSeconds);
         HelperPane.HardwareMetricSwitchIntervalChanged += CpuTemperature.SetSwitchInterval;
@@ -696,6 +700,22 @@ public partial class MainWindow : Window
     {
         _settings.JeonEokPerTenThousand = ratio;
     }
+    private void Memo_MemoChanged(object? sender, string text)
+    {
+        _settings.MemoText = text;
+        _memoSaveTimer.Stop();
+        _memoSaveTimer.Start();
+    }
+    private void SaveMemoNow()
+    {
+        _memoSaveTimer.Stop();
+        try
+        {
+            _settings.Save();
+            Memo.MarkSaved(DateTime.Now);
+        }
+        catch (Exception ex) { Memo.MarkSaveFailed(ex.Message); }
+    }
     private void ProductionTimerStartRequested(object? sender, ProductionTimerEventArgs e) =>
         e.Added = HelperPane.AddAndStartTimer(e.Name, e.DurationSeconds);
     private void BrowserZoomOut_Click(object sender, RoutedEventArgs e) => SetBrowserZoom(_settings.BrowserZoom - 0.1);
@@ -728,6 +748,7 @@ public partial class MainWindow : Window
     private void MainWindow_Closing(object? sender, CancelEventArgs e)
     {
         _isClosing = true;
+        _memoSaveTimer.Stop();
         _externalProgramTimer.Stop();
         _changingProgramTab = true;
         _externalWindowDock.Dispose();

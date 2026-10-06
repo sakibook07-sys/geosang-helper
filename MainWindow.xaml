@@ -223,6 +223,9 @@
                                 <TabItem Header="생산시설">
                                     <local:ProductionFacilityCalculatorPane x:Name="ProductionCalculator" HorizontalAlignment="Stretch"/>
                                 </TabItem>
+                                <TabItem Header="메모">
+                                    <local:MemoPane x:Name="Memo" HorizontalAlignment="Stretch"/>
+                                </TabItem>
                             </TabControl>
                             <TextBlock Text="이미지 바로가기" Foreground="#5C4338" FontWeight="Bold" Margin="4,15,4,6"/>
                             <ItemsControl x:Name="ImageShortcutButtons">
