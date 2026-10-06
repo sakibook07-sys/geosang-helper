@@ -4,7 +4,7 @@ Windows 10/11용 개인 도우미입니다. C# .NET 8과 WPF로 만들었으며,
 
 환경설정은 하단 왼쪽 제목줄의 `환경설정` 버튼으로 별도 창에서 엽니다. 배경·글자 크기·색상·투명도, CPU 온도와 RAM 사용률의 전환 간격을 바꾸고 Windows에 설치된 글꼴을 선택할 수 있습니다. 글꼴 목록은 한글 이름을 우선 표시하고 각 글꼴의 `가나다 Aa 123` 미리보기를 함께 보여줍니다.
 
-오른쪽 도구 영역에는 일반·지전비율·생산시설 계산기 탭이 있습니다. 일반 계산기는 천 단위 쉼표를 표시하고, 지전비율 계산기는 아이템 가격의 한글 단위와 예상 현금가를 계산합니다. 생산시설 계산 결과는 타이머 목록에 추가하면서 바로 시작할 수 있습니다.
+오른쪽 도구 영역에는 계산기·생산시설 탭이 있습니다. 일반 계산기 아래의 지전 환산 영역은 계산기의 현재 숫자를 그대로 사용해 한글 가격과 예상 현금가를 즉시 보여주며, 마지막 비율과 단위도 저장합니다. 생산시설 계산 결과는 타이머 목록에 추가하면서 바로 시작할 수 있습니다.
 
 ## 상단에 다른 프로그램 넣기
 
@@ -49,8 +49,7 @@ dotnet publish .\GeosangHub.csproj -c Release -r win-x64 --self-contained true -
 
 - `MainWindow.xaml` / `.xaml.cs`: 통합 화면과 브라우저 탭
 - `GeosangHelperPane.xaml` / `.xaml.cs`: 타이머, 체크리스트, 환경설정
-- `CalculatorPane.xaml` / `.xaml.cs`: 일반 계산기
-- `JeonRateCalculatorPane.xaml` / `.xaml.cs`: 지전비율 계산기
+- `CalculatorPane.xaml` / `.xaml.cs`: 일반 계산기와 지전 현금가 환산
 - `ProductionFacilityCalculatorPane.xaml` / `.xaml.cs`: 생산시설 계산과 타이머 연결
 - `CpuTemperaturePane.xaml` / `.xaml.cs`: CPU 온도와 RAM 사용률 교대 표시
 - `ImageShortcutDialog.cs` / `ImagePreviewWindow.cs`: 이미지 버튼 등록과 보기

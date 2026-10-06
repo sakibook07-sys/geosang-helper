@@ -214,11 +214,8 @@
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                         <StackPanel x:Name="RightContent" Margin="5">
                             <TabControl x:Name="CalculatorTabs" Background="Transparent" BorderBrush="#BCA698">
-                                <TabItem Header="일반">
+                                <TabItem Header="계산기">
                                     <local:CalculatorPane x:Name="Calculator" HorizontalAlignment="Stretch"/>
-                                </TabItem>
-                                <TabItem Header="지전비율">
-                                    <local:JeonRateCalculatorPane x:Name="JeonRateCalculator" HorizontalAlignment="Stretch"/>
                                 </TabItem>
                                 <TabItem Header="생산시설">
                                     <local:ProductionFacilityCalculatorPane x:Name="ProductionCalculator" HorizontalAlignment="Stretch"/>

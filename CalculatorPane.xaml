@@ -1,7 +1,7 @@
 <UserControl x:Class="GeosangHub.CalculatorPane"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             MinWidth="150" MaxWidth="280" PreviewKeyDown="Calculator_PreviewKeyDown">
+             MinWidth="180" MaxWidth="320" PreviewKeyDown="Calculator_PreviewKeyDown">
     <UserControl.Resources>
         <Style x:Key="KeyStyle" TargetType="Button">
             <Setter Property="Height" Value="43"/>
@@ -52,6 +52,26 @@
             </UniformGrid>
             <TextBlock Text="키보드 숫자와 사칙연산도 사용할 수 있어요" TextAlignment="Center" TextWrapping="Wrap"
                        FontSize="11" Foreground="#806B60" Margin="0,7,0,0"/>
+            <Border Background="#FFFDFC" BorderBrush="#CFC2B9" BorderThickness="1" CornerRadius="5" Padding="8" Margin="0,9,0,0">
+                <StackPanel>
+                    <TextBlock Text="지전 현금가 환산" FontWeight="Bold" Foreground="#302925"/>
+                    <TextBlock Text="위 계산기의 현재 숫자를 바로 환산합니다." FontSize="10" Foreground="#806B60" Margin="0,2,0,6"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="86"/></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="1억당 현금가" FontSize="10" Foreground="#806B60"/>
+                            <DockPanel><TextBlock DockPanel.Dock="Right" Text="원" VerticalAlignment="Center" Margin="4,0,0,0"/><TextBox x:Name="JeonRateInput" Text="3000" TextChanged="JeonSettingChanged" Padding="4" MaxLength="16"/></DockPanel>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Margin="6,0,0,0">
+                            <TextBlock Text="입력 단위" FontSize="10" Foreground="#806B60"/>
+                            <ComboBox x:Name="JeonUnitCombo" DisplayMemberPath="Name" SelectionChanged="JeonSettingChanged" Padding="3"/>
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock x:Name="JeonAmountText" Text="0원" FontWeight="Bold" TextWrapping="Wrap" Margin="0,8,0,2"/>
+                    <TextBlock x:Name="JeonCashText" Text="약 0원" FontSize="18" FontWeight="Bold" Foreground="#8B3F2F" TextWrapping="Wrap"/>
+                    <TextBlock x:Name="JeonValidationText" Foreground="#A23B2A" FontSize="10" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
         </StackPanel>
     </Border>
 </UserControl>
