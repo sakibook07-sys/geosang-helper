@@ -9,11 +9,11 @@
 
             <Border Background="#FFFDFC" BorderBrush="#CFC2B9" BorderThickness="1" CornerRadius="5" Padding="8">
                 <StackPanel>
-                    <TextBlock Text="적용 비율" FontSize="10" Foreground="#806B60"/>
+                    <TextBlock Text="지전 비율" FontSize="10" Foreground="#806B60"/>
                     <DockPanel Margin="0,3,0,0">
-                        <TextBlock DockPanel.Dock="Left" Text="1억 지전  =" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                        <TextBlock DockPanel.Dock="Right" Text="원" VerticalAlignment="Center" Margin="5,0,0,0"/>
-                        <TextBox x:Name="RateInput" Text="3000" TextChanged="RateInput_Changed" Padding="5" MaxLength="16" TextAlignment="Right"/>
+                        <TextBlock DockPanel.Dock="Left" Text="1만원당" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock DockPanel.Dock="Right" Text="억" FontWeight="Bold" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                        <TextBox x:Name="RateInput" Text="3.33333333" TextChanged="RateInput_Changed" Padding="5" MaxLength="18" TextAlignment="Right"/>
                     </DockPanel>
                 </StackPanel>
             </Border>

@@ -29,6 +29,7 @@ public sealed class HubSettings
     public double MarketZoom { get; set; } = 1.0;
     public double EmptyZoom { get; set; } = 1.0;
     public decimal JeonRate { get; set; } = 3000m;
+    public decimal JeonEokPerTenThousand { get; set; }
     public List<BookmarkItem> Bookmarks { get; set; } = new();
 
     public static string Folder => Environment.GetEnvironmentVariable("GEOSANG_HUB_DATA")
@@ -41,7 +42,10 @@ public sealed class HubSettings
         try
         {
             if (!File.Exists(FilePath)) return new();
-            return JsonSerializer.Deserialize<HubSettings>(File.ReadAllText(FilePath)) ?? new();
+            var settings = JsonSerializer.Deserialize<HubSettings>(File.ReadAllText(FilePath)) ?? new();
+            if (settings.JeonEokPerTenThousand <= 0)
+                settings.JeonEokPerTenThousand = settings.JeonRate > 0 ? 10_000m / settings.JeonRate : 10_000m / 3000m;
+            return settings;
         }
         catch { return new(); }
     }

@@ -9,7 +9,7 @@ public partial class JeonExchangePane : UserControl
     private bool _ready;
     private bool _updating;
     private InputSide _lastInput = InputSide.Jeon;
-    public event EventHandler<decimal>? RateChanged;
+    public event EventHandler<decimal>? RatioChanged;
 
     public JeonExchangePane()
     {
@@ -18,10 +18,10 @@ public partial class JeonExchangePane : UserControl
         ConvertFromJeon();
     }
 
-    public void ConfigureRate(decimal rate)
+    public void ConfigureRatio(decimal eokPerTenThousand)
     {
         _updating = true;
-        RateInput.Text = (rate > 0 ? rate : 3000m).ToString("G29", CultureInfo.InvariantCulture);
+        RateInput.Text = (eokPerTenThousand > 0 ? eokPerTenThousand : 10_000m / 3000m).ToString("0.########", CultureInfo.InvariantCulture);
         _updating = false;
         Recalculate();
     }
@@ -30,8 +30,8 @@ public partial class JeonExchangePane : UserControl
     {
         if (!_ready || _updating) return;
         Recalculate();
-        if (TryRead(RateInput.Text, out decimal rate) && rate > 0)
-            RateChanged?.Invoke(this, rate);
+        if (TryRead(RateInput.Text, out decimal ratio) && ratio > 0)
+            RatioChanged?.Invoke(this, ratio);
     }
 
     private void JeonInput_Changed(object sender, TextChangedEventArgs e)
@@ -56,14 +56,14 @@ public partial class JeonExchangePane : UserControl
     private void ConvertFromJeon()
     {
         ValidationText.Text = string.Empty;
-        if (!TryGetRate(out decimal rate) || !TryRead(JeonInput.Text, out decimal eok) || eok < 0)
+        if (!TryGetRatio(out decimal ratio) || !TryRead(JeonInput.Text, out decimal eok) || eok < 0)
         {
             ShowInvalid("지전과 비율을 0 이상의 숫자로 입력해주세요.");
             return;
         }
         decimal itemWon;
         decimal cash;
-        try { itemWon = eok * 100_000_000m; cash = eok * rate; }
+        try { itemWon = eok * 100_000_000m; cash = eok / ratio * 10_000m; }
         catch (OverflowException) { ShowInvalid("입력 금액이 너무 큽니다."); return; }
         if (itemWon > long.MaxValue) { ShowInvalid("입력 금액이 너무 큽니다."); return; }
         long roundedWon = (long)decimal.Round(itemWon, 0, MidpointRounding.AwayFromZero);
@@ -77,14 +77,14 @@ public partial class JeonExchangePane : UserControl
     private void ConvertFromCash()
     {
         ValidationText.Text = string.Empty;
-        if (!TryGetRate(out decimal rate) || !TryRead(CashInput.Text, out decimal cash) || cash < 0)
+        if (!TryGetRatio(out decimal ratio) || !TryRead(CashInput.Text, out decimal cash) || cash < 0)
         {
             ShowInvalid("현금과 비율을 0 이상의 숫자로 입력해주세요.");
             return;
         }
         decimal eok;
         decimal itemWon;
-        try { eok = cash / rate; itemWon = eok * 100_000_000m; }
+        try { eok = cash / 10_000m * ratio; itemWon = eok * 100_000_000m; }
         catch (Exception ex) when (ex is DivideByZeroException or OverflowException) { ShowInvalid("입력 금액이 너무 큽니다."); return; }
         if (itemWon > long.MaxValue) { ShowInvalid("입력 금액이 너무 큽니다."); return; }
         long roundedWon = (long)decimal.Round(itemWon, 0, MidpointRounding.AwayFromZero);
@@ -95,7 +95,7 @@ public partial class JeonExchangePane : UserControl
         CashDetailText.Text = FormatCashLabel(cash);
     }
 
-    private bool TryGetRate(out decimal rate) => TryRead(RateInput.Text, out rate) && rate > 0;
+    private bool TryGetRatio(out decimal ratio) => TryRead(RateInput.Text, out ratio) && ratio > 0;
 
     private static bool TryRead(string text, out decimal value) =>
         decimal.TryParse(text.Replace(",", "").Trim(), NumberStyles.Number, CultureInfo.InvariantCulture, out value)
