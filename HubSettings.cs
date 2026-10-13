@@ -1,6 +1,6 @@
 using System.IO;
+using System.ComponentModel;
 using System.Text.Json;
-using GeotaMarketViewer;
 
 namespace GeosangHub;
 
@@ -20,13 +20,13 @@ public sealed class HubSettings
     public string HomeUrl { get; set; } = "https://www.youtube.com/";
     public List<string> BrowserTabs { get; set; } = new();
     public int ActiveBrowserTab { get; set; }
-    public int ServerId { get; set; } = 3;
-    public string MarketSearch { get; set; } = string.Empty;
-    public MarketSort MarketSort { get; set; } = MarketSort.Latest;
-    public int MarketPage { get; set; } = 1;
+    public string SecondaryBrowserUrl { get; set; } = "https://www.youtube.com/";
+    public string SecondaryHomeUrl { get; set; } = string.Empty;
+    public List<string> SecondaryBrowserTabs { get; set; } = new();
+    public int SecondaryActiveBrowserTab { get; set; }
+    public double SecondaryBrowserZoom { get; set; } = 1.0;
     public double BrowserZoom { get; set; } = 1.0;
     public double HelperZoom { get; set; } = 1.0;
-    public double MarketZoom { get; set; } = 1.0;
     public double EmptyZoom { get; set; } = 1.0;
     public decimal JeonRate { get; set; } = 3000m;
     public decimal JeonEokPerTenThousand { get; set; }
@@ -58,9 +58,14 @@ public sealed class HubSettings
     }
 }
 
-public sealed class BookmarkItem
+public sealed class BookmarkItem : INotifyPropertyChanged
 {
-    public string Name { get; set; } = string.Empty;
-    public string Url { get; set; } = string.Empty;
-    public string IconUrl { get; set; } = string.Empty;
+    private string _name = string.Empty;
+    private string _url = string.Empty;
+    private string _iconUrl = string.Empty;
+    public string Name { get => _name; set { if (_name == value) return; _name = value; Changed(nameof(Name)); } }
+    public string Url { get => _url; set { if (_url == value) return; _url = value; Changed(nameof(Url)); } }
+    public string IconUrl { get => _iconUrl; set { if (_iconUrl == value) return; _iconUrl = value; Changed(nameof(IconUrl)); } }
+    public event PropertyChangedEventHandler? PropertyChanged;
+    private void Changed(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }

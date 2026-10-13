@@ -163,38 +163,7 @@
                           ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" ShowsPreview="True"/>
 
             <Border Grid.Column="2" Background="White" BorderBrush="#77655D" BorderThickness="1" CornerRadius="5" ClipToBounds="True">
-                <Grid>
-                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                    <Border Grid.Row="0" Background="#302925">
-                        <DockPanel>
-                            <Button DockPanel.Dock="Right" Content="＋" Click="MarketZoomIn_Click"/>
-                            <TextBlock x:Name="MarketZoomText" DockPanel.Dock="Right" Width="54" TextAlignment="Center" VerticalAlignment="Center" Foreground="White" FontWeight="Bold"/>
-                            <Button DockPanel.Dock="Right" Content="－" Click="MarketZoomOut_Click"/>
-                            <TextBlock Text="거타 육의전 · 원본 페이지" Foreground="White" FontSize="17" FontWeight="Bold" Margin="12,9"/>
-                        </DockPanel>
-                    </Border>
-                    <Grid Grid.Row="1" Margin="6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="120"/><ColumnDefinition Width="*"/><ColumnDefinition Width="145"/><ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <ComboBox x:Name="ServerCombo" Grid.Column="0" DisplayMemberPath="Name" SelectedValuePath="Id" Margin="3" Padding="5"/>
-                        <TextBox x:Name="MarketSearchBox" Grid.Column="1" KeyDown="MarketSearchBox_KeyDown" ToolTip="아이템 이름"/>
-                        <ComboBox x:Name="MarketSortCombo" Grid.Column="2" Margin="3" Padding="5" SelectionChanged="MarketSortCombo_SelectionChanged">
-                            <ComboBoxItem Tag="Latest">기본 정렬</ComboBoxItem>
-                            <ComboBoxItem Tag="PriceLow">가격 낮은순</ComboBoxItem>
-                            <ComboBoxItem Tag="PriceHigh">가격 높은순</ComboBoxItem>
-                        </ComboBox>
-                        <Button Grid.Column="3" Content="검색" Click="MarketSearch_Click"/>
-                    </Grid>
-                    <wv2:WebView2 x:Name="MarketView" Grid.Row="2"/>
-                    <DockPanel Grid.Row="3" Background="#F4EEE9">
-                        <Button DockPanel.Dock="Left" Content="◀ 이전" Click="MarketPrevious_Click"/>
-                        <TextBlock x:Name="MarketPageText" DockPanel.Dock="Left" Width="80" TextAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
-                        <Button DockPanel.Dock="Left" Content="다음 ▶" Click="MarketNext_Click"/>
-                        <Button DockPanel.Dock="Right" Content="새로고침" Click="MarketRefresh_Click"/>
-                        <TextBlock x:Name="MarketStatus" Text="준비 중" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#6E5047"/>
-                    </DockPanel>
-                </Grid>
+                <local:SecondaryBrowserPane x:Name="SecondaryBrowser"/>
             </Border>
 
             <GridSplitter Grid.Column="3" Width="7" HorizontalAlignment="Stretch" Background="#7B6257"

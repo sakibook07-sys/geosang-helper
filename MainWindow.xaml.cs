@@ -7,7 +7,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Interop;
-using GeotaMarketViewer;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 using System.Windows.Threading;
@@ -26,20 +25,11 @@ public partial class MainWindow : Window
     private ExternalProgramTabEntry? _activeProgramTab;
     private CoreWebView2Environment? _webEnvironment;
     private bool _browserReady;
-    private bool _marketReady;
     private bool _isClosing;
     private bool _changingProgramTab;
     private readonly ExternalWindowDock _externalWindowDock;
     private readonly DispatcherTimer _externalProgramTimer = new() { Interval = TimeSpan.FromSeconds(1) };
     private readonly DispatcherTimer _memoSaveTimer = new() { Interval = TimeSpan.FromMilliseconds(800) };
-
-    private static readonly ServerOption[] Servers =
-    {
-        new(1, "백호"), new(2, "주작"), new(3, "현무"), new(4, "청룡"),
-        new(5, "봉황"), new(6, "해태"), new(7, "세종"), new(8, "신구"),
-        new(9, "단군"), new(10, "비호"), new(11, "태극"), new(12, "화랑"),
-        new(13, "태왕")
-    };
 
     public MainWindow()
     {
@@ -94,14 +84,8 @@ public partial class MainWindow : Window
         BrowserAddress.Text = _settings.BrowserUrl;
         if (!Uri.TryCreate(_settings.HomeUrl, UriKind.Absolute, out var savedHome) || savedHome.Scheme is not ("http" or "https"))
             _settings.HomeUrl = "https://www.youtube.com/";
-        ServerCombo.ItemsSource = Servers;
-        ServerCombo.SelectedValue = Math.Clamp(_settings.ServerId, 1, 13);
-        MarketSearchBox.Text = _settings.MarketSearch;
-        MarketSortCombo.SelectedIndex = Math.Clamp((int)_settings.MarketSort, 0, 2);
-        MarketPageText.Text = $"{Math.Max(1, _settings.MarketPage)} 페이지";
         _settings.BrowserZoom = NormalizeZoom(_settings.BrowserZoom);
         _settings.HelperZoom = NormalizeZoom(_settings.HelperZoom);
-        _settings.MarketZoom = NormalizeZoom(_settings.MarketZoom);
         _settings.EmptyZoom = NormalizeZoom(_settings.EmptyZoom);
         UpdateZoomDisplays();
         ApplyHelperZoom();
@@ -113,12 +97,10 @@ public partial class MainWindow : Window
     {
         try
         {
-            MarketStatus.Text = "브라우저 준비 중";
             _webEnvironment = await CoreWebView2Environment.CreateAsync(userDataFolder: HubSettings.WebViewFolder);
         }
         catch (Exception ex)
         {
-            MarketStatus.Text = "브라우저 환경 시작 실패";
             ShowStartupError("내장 브라우저 환경을 준비하지 못했습니다.", ex);
             return;
         }
@@ -142,16 +124,11 @@ public partial class MainWindow : Window
 
         try
         {
-            await MarketView.EnsureCoreWebView2Async(_webEnvironment);
-            ConfigureMarket();
-            _marketReady = true;
-            MarketView.ZoomFactor = _settings.MarketZoom;
-            NavigateMarket(resetPage: false);
+            await SecondaryBrowser.InitializeAsync(_webEnvironment, _settings, _bookmarks, SaveBookmarks);
         }
         catch (Exception ex)
         {
-            MarketStatus.Text = "육의전 화면 시작 실패 · 새로고침을 눌러주세요";
-            WriteErrorLog("Market initialization", ex);
+            WriteErrorLog("Secondary browser initialization", ex);
         }
     }
 
@@ -223,20 +200,6 @@ public partial class MainWindow : Window
         catch (Exception ex) { WriteErrorLog("Open new browser tab", ex); }
     }
 
-    private void ConfigureMarket()
-    {
-        MarketView.CoreWebView2.Settings.IsStatusBarEnabled = false;
-        MarketView.CoreWebView2.Settings.AreDevToolsEnabled = false;
-        MarketView.CoreWebView2.NavigationStarting += (_, _) => MarketStatus.Text = "불러오는 중";
-        MarketView.CoreWebView2.NavigationCompleted += (_, args) =>
-            MarketStatus.Text = args.IsSuccess ? "불러오기 완료" : "불러오기 실패";
-        MarketView.CoreWebView2.NewWindowRequested += (_, args) =>
-        {
-            args.Handled = true;
-            MarketView.CoreWebView2.Navigate(args.Uri);
-        };
-    }
-
     private void NavigateBrowser(string? input)
     {
         ShowBrowserArea();
@@ -258,26 +221,6 @@ public partial class MainWindow : Window
         else if (value.Contains('.') && !value.Contains(' '))
             return "https://" + value;
         return "https://search.naver.com/search.naver?query=" + Uri.EscapeDataString(value);
-    }
-
-    private void NavigateMarket(bool resetPage)
-    {
-        if (!_marketReady) return;
-        if (resetPage) _settings.MarketPage = 1;
-        _settings.MarketPage = Math.Max(1, _settings.MarketPage);
-        _settings.ServerId = ServerCombo.SelectedValue is int id ? id : 3;
-        _settings.MarketSearch = MarketSearchBox.Text.Trim();
-        _settings.MarketSort = SelectedMarketSort();
-        MarketPageText.Text = $"{_settings.MarketPage} 페이지";
-        MarketView.CoreWebView2.Navigate(MarketUrlBuilder.Build(
-            _settings.ServerId, _settings.MarketSearch, _settings.MarketSort, _settings.MarketPage).AbsoluteUri);
-    }
-
-    private MarketSort SelectedMarketSort()
-    {
-        if (MarketSortCombo.SelectedItem is ComboBoxItem item &&
-            Enum.TryParse<MarketSort>(item.Tag?.ToString(), out var sort)) return sort;
-        return MarketSort.Latest;
     }
 
     private void BrowserGo_Click(object sender, RoutedEventArgs e) => NavigateBrowser(BrowserAddress.Text);
@@ -650,7 +593,6 @@ public partial class MainWindow : Window
     {
         BrowserZoomText.Text = $"{_settings.BrowserZoom:P0}";
         HelperZoomText.Text = $"{_settings.HelperZoom:P0}";
-        MarketZoomText.Text = $"{_settings.MarketZoom:P0}";
         EmptyZoomText.Text = $"{_settings.EmptyZoom:P0}";
     }
 
@@ -658,12 +600,6 @@ public partial class MainWindow : Window
     {
         _settings.BrowserZoom = NormalizeZoom(value);
         foreach (var tab in _browserTabs) tab.View.ZoomFactor = _settings.BrowserZoom;
-        UpdateZoomDisplays();
-    }
-    private void SetMarketZoom(double value)
-    {
-        _settings.MarketZoom = NormalizeZoom(value);
-        if (_marketReady) MarketView.ZoomFactor = _settings.MarketZoom;
         UpdateZoomDisplays();
     }
     private void SetHelperZoom(double value)
@@ -722,28 +658,8 @@ public partial class MainWindow : Window
     private void BrowserZoomIn_Click(object sender, RoutedEventArgs e) => SetBrowserZoom(_settings.BrowserZoom + 0.1);
     private void HelperZoomOut_Click(object sender, RoutedEventArgs e) => SetHelperZoom(_settings.HelperZoom - 0.1);
     private void HelperZoomIn_Click(object sender, RoutedEventArgs e) => SetHelperZoom(_settings.HelperZoom + 0.1);
-    private void MarketZoomOut_Click(object sender, RoutedEventArgs e) => SetMarketZoom(_settings.MarketZoom - 0.1);
-    private void MarketZoomIn_Click(object sender, RoutedEventArgs e) => SetMarketZoom(_settings.MarketZoom + 0.1);
     private void EmptyZoomOut_Click(object sender, RoutedEventArgs e) => SetEmptyZoom(_settings.EmptyZoom - 0.1);
     private void EmptyZoomIn_Click(object sender, RoutedEventArgs e) => SetEmptyZoom(_settings.EmptyZoom + 0.1);
-
-    private void MarketSearch_Click(object sender, RoutedEventArgs e) => NavigateMarket(resetPage: true);
-    private void MarketSearchBox_KeyDown(object sender, KeyEventArgs e)
-    {
-        if (e.Key == Key.Enter) { NavigateMarket(resetPage: true); e.Handled = true; }
-    }
-    private void MarketSortCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (IsLoaded && _marketReady) NavigateMarket(resetPage: true);
-    }
-    private void MarketPrevious_Click(object sender, RoutedEventArgs e)
-    {
-        if (_settings.MarketPage <= 1) return;
-        _settings.MarketPage--;
-        NavigateMarket(resetPage: false);
-    }
-    private void MarketNext_Click(object sender, RoutedEventArgs e) { _settings.MarketPage++; NavigateMarket(resetPage: false); }
-    private void MarketRefresh_Click(object sender, RoutedEventArgs e) { if (_marketReady) MarketView.Reload(); }
 
     private void MainWindow_Closing(object? sender, CancelEventArgs e)
     {
@@ -773,13 +689,11 @@ public partial class MainWindow : Window
             .Select(x => x.Url)
             .Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
         _settings.ActiveBrowserTab = Math.Max(0, _activeBrowserTab == null ? 0 : _browserTabs.IndexOf(_activeBrowserTab));
-        _settings.ServerId = ServerCombo.SelectedValue is int id ? id : 3;
-        _settings.MarketSearch = MarketSearchBox.Text.Trim();
-        _settings.MarketSort = SelectedMarketSort();
+        SecondaryBrowser.SaveState(_settings);
         _settings.Bookmarks = _bookmarks.ToList();
         try { _settings.Save(); } catch { }
         foreach (var tab in _browserTabs) tab.View.Dispose();
-        MarketView.Dispose();
+        SecondaryBrowser.Dispose();
     }
 
     private void ShowStartupError(string message, Exception ex)
@@ -800,8 +714,6 @@ public partial class MainWindow : Window
         }
         catch { }
     }
-
-    private sealed record ServerOption(int Id, string Name);
 
     private sealed class BrowserTabEntry : INotifyPropertyChanged
     {
